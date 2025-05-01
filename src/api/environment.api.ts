@@ -15,7 +15,7 @@ export interface Environment {
   scannedDate: string;
   scans: [];
   createdAt: string;
-  markings?: Marking[]; // Add the optional 'markings' property
+  markings?: ApiMarking[]; // Add the optional 'markings' property
 }
 
 export interface Marking {
