@@ -1,0 +1,28 @@
+# Build output
+dist
+build
+
+# Node modules
+node_modules
+
+# Git files
+.git
+.husky
+
+# Lock files
+yarn.lock
+package-lock.json
+
+# Vite & env files
+.vite
+.env*
+!.env.example
+
+# IDE settings
+*.log
+*.DS_Store
+.idea
+.vscode
+
+# Generated types or files
+types/generated/**
