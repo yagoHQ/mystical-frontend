@@ -50,11 +50,14 @@ export function Scene({
 
       <OrbitControls
         makeDefault
-        enabled={isAddingMode}
-        minDistance={20}
-        maxDistance={90}
-        minPolarAngle={0}
-        maxPolarAngle={Math.PI / 2}
+        enableZoom={true}
+        enablePan={true}
+        enableRotate={true} // allow rotation in both modes
+        minDistance={0.1} // as close as you like
+        maxDistance={2000} // as far as you like
+        minPolarAngle={0} // full vertical sweep
+        maxPolarAngle={Math.PI}
+        zoomSpeed={1.5} // faster zoom
       />
     </>
   );

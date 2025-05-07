@@ -78,7 +78,15 @@ export default function EnvironmentDetail() {
 
       {/* 3D Canvas */}
       <div className="flex flex-1 overflow-hidden">
-        <Canvas camera={{ position: [20, 60, 20], fov: 45 }}>
+        <Canvas
+          camera={{
+            position: [20, 60, 20],
+            fov: 45,
+            near: 0.01, // super-close zoom
+            far: 5000, // super-far zoom
+          }}
+        >
+          {' '}
           <Scene
             markings={markings}
             onAddMarking={handleAddMarking}
