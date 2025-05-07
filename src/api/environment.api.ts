@@ -110,3 +110,15 @@ export function convertApiMarkingsToComponentFormat(
     url: mark.url || '', // Include URL if available
   }));
 }
+
+export function deleteMarking(markingId: string): Promise<void> {
+  return apiClient
+    .delete(`/api/environments/deleteMarking/${markingId}`)
+    .then(() => {
+      console.log('Marking deleted successfully');
+    })
+    .catch((err) => {
+      const message = handleApiError(err);
+      throw new Error(message);
+    });
+}

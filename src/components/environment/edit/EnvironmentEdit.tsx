@@ -11,6 +11,7 @@ import {
   Environment as EnvType,
   Marking,
   convertApiMarkingsToComponentFormat,
+  deleteMarking,
 } from '@/api/environment.api';
 
 export default function EnvironmentEdit() {
@@ -73,9 +74,17 @@ export default function EnvironmentEdit() {
     setNewMarkingUrl('');
   };
 
-  const deleteMarking = useCallback((markingId: string) => {
-    setMarkings((prev) => prev.filter((m) => m.id !== markingId));
-  }, []);
+  const handleDeleteMarking = async (markingId: string) => {
+    try {
+      // 1️⃣ delete on the server
+      await deleteMarking(markingId);
+
+      // 2️⃣ update local state
+      setMarkings((prev) => prev.filter((m) => m.id !== markingId));
+    } catch (err) {
+      console.error('Failed to delete marking:', err);
+    }
+  };
 
   // 3️⃣ Persist new markings
   const saveAllMarkings = async () => {
@@ -136,7 +145,7 @@ export default function EnvironmentEdit() {
             <Scene
               markings={markings}
               onAddMarking={handleAddMarking}
-              onDeleteMarking={deleteMarking}
+              onDeleteMarking={handleDeleteMarking}
               isAddingMode={true}
               markerScale={5}
               scans={environment.scans}
@@ -183,7 +192,7 @@ export default function EnvironmentEdit() {
         </div>
 
         {/* Sidebar */}
-        <RightSidebar markings={markings} deleteMarking={deleteMarking} />
+        <RightSidebar markings={markings} deleteMarking={handleDeleteMarking} />
       </div>
     </div>
   );

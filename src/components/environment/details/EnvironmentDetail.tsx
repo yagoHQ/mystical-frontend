@@ -7,6 +7,7 @@ import {
   getEnvironmentById,
   Environment as EnvType,
   Marking,
+  deleteMarking,
 } from '@/api/environment.api';
 
 export default function EnvironmentDetail() {
@@ -42,8 +43,17 @@ export default function EnvironmentDetail() {
     return;
   };
 
-  const deleteMarking = (markId: string) =>
-    setMarkings((prev) => prev.filter((m) => m.id !== markId));
+  const handleDeleteMarking = async (markingId: string) => {
+    try {
+      // 1️⃣ delete on the server
+      await deleteMarking(markingId);
+
+      // 2️⃣ update local state
+      setMarkings((prev) => prev.filter((m) => m.id !== markingId));
+    } catch (err) {
+      console.error('Failed to delete marking:', err);
+    }
+  };
 
   const handleEdit = () => navigate(`/environment/${id}/edit`);
 
@@ -90,7 +100,7 @@ export default function EnvironmentDetail() {
           <Scene
             markings={markings}
             onAddMarking={handleAddMarking}
-            onDeleteMarking={deleteMarking}
+            onDeleteMarking={handleDeleteMarking}
             isAddingMode={isAddingMode}
             markerScale={1}
             scans={environment.scans}
