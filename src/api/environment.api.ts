@@ -26,6 +26,7 @@ export interface Marking {
   x?: number;
   y?: number;
   z?: number;
+  url?: string;
 }
 export interface ApiMarking {
   id: string;
@@ -106,5 +107,6 @@ export function convertApiMarkingsToComponentFormat(
     id: mark.id,
     label: mark.remark || 'Unnamed Marking',
     position: [mark.x, mark.y, mark.z] as [number, number, number],
+    url: mark.url || '', // Include URL if available
   }));
 }

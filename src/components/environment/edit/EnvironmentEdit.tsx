@@ -23,20 +23,18 @@ export default function EnvironmentEdit() {
     [number, number, number] | null
   >(null);
   const [newMarkingLabel, setNewMarkingLabel] = useState('');
+  const [newMarkingUrl, setNewMarkingUrl] = useState(''); // <-- new state
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Using the utility function from API
-
-  // 1️⃣ Load environment + existing scans & markings
+  // 1️⃣ Load the environment & existing markings
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     getEnvironmentById(id)
       .then((env) => {
         setEnvironment(env);
-        // Convert API markings to the format expected by the component
         if (env.markings && Array.isArray(env.markings)) {
           setMarkings(convertApiMarkingsToComponentFormat(env.markings));
         }
@@ -45,86 +43,77 @@ export default function EnvironmentEdit() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // 2️⃣ Handlers for adding, saving, cancelling, deleting
+  // 2️⃣ Handlers to start/cancel adding a marking
   const handleAddMarking = useCallback((position: [number, number, number]) => {
     setTempPosition(position);
   }, []);
 
   const saveTempMarking = () => {
     if (!tempPosition || !newMarkingLabel.trim()) return;
+
     setMarkings((prev) => [
       ...prev,
       {
-        id: `temp-${Date.now()}`, // Use temp ID until server assigns one
+        id: `temp-${Date.now()}`,
         label: newMarkingLabel.trim(),
         position: tempPosition,
-      },
+        url: newMarkingUrl.trim() || '', // <-- include URL
+      } as Marking,
     ]);
+
+    // reset
     setTempPosition(null);
     setNewMarkingLabel('');
+    setNewMarkingUrl('');
   };
 
   const cancelTempMarking = () => {
     setTempPosition(null);
     setNewMarkingLabel('');
+    setNewMarkingUrl('');
   };
 
-  const deleteMarking = useCallback((id: string) => {
-    setMarkings((prev) => prev.filter((m) => m.id !== id));
+  const deleteMarking = useCallback((markingId: string) => {
+    setMarkings((prev) => prev.filter((m) => m.id !== markingId));
   }, []);
 
-  // 3️⃣ Persist back to server
+  // 3️⃣ Persist new markings
   const saveAllMarkings = async () => {
     if (!id) return;
     setSaving(true);
 
     try {
-      // Find new markings (ones with temp IDs)
-      const newMarkings = markings.filter((mark) =>
-        mark.id.startsWith('temp-')
-      );
-
-      // Add each new marking through API
-      for (const mark of newMarkings) {
+      const newMarkings = markings.filter((m) => m.id.startsWith('temp-'));
+      for (const m of newMarkings) {
         await addMarkingToEnvironment({
           environmentId: id,
-          createdById: environment?.scannedBy?.id || '', // May need to update based on your user context
-          x: mark.position[0],
-          y: mark.position[1],
-          z: mark.position[2],
-          remark: mark.label,
+          createdById: environment?.scannedBy?.id || '',
+          x: m.position[0],
+          y: m.position[1],
+          z: m.position[2],
+          remark: m.label,
           metadata: '',
-          url: '',
+          url: m.url || '', // ← pass the URL
         });
       }
-
-      // Navigate back to detail view after saving
       navigate(`/environment/${id}`);
     } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('Failed to save markings');
-      }
+      setError(err instanceof Error ? err.message : 'Failed to save markings');
     } finally {
       setSaving(false);
     }
   };
 
-  // 4️⃣ UI states
-  if (loading) {
+  // 4️⃣ Render loading / error
+  if (loading)
     return <div className="p-6 text-center">Loading environment…</div>;
-  }
-  if (error) {
+  if (error)
     return <div className="p-6 text-center text-red-600">Error: {error}</div>;
-  }
-  if (!environment) {
-    return null;
-  }
+  if (!environment) return null;
 
   return (
     <div className="flex flex-col h-screen w-full">
-      {/* Header Bar */}
+      {/* Header */}
       <div className="flex items-center justify-between px-8 py-4 bg-white shadow">
         <h1 className="text-2xl font-semibold">
           {environment.title} – Edit Markings
@@ -154,33 +143,41 @@ export default function EnvironmentEdit() {
             />
           </Canvas>
 
-          {/* Prompt to click */}
           {!tempPosition && (
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-full z-20">
               Click on the model to add a marking
             </div>
           )}
 
-          {/* Temporary Label Entry */}
+          {/* Temporary Label + URL Entry */}
           {tempPosition && (
-            <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 bg-white p-4 shadow rounded-md flex gap-2 items-center">
+            <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 bg-white p-4 shadow rounded-md space-y-2">
               <input
                 type="text"
                 value={newMarkingLabel}
                 onChange={(e) => setNewMarkingLabel(e.target.value)}
                 placeholder="Enter marking text"
-                className="p-2 border rounded flex-1"
+                className="w-64 p-2 border rounded"
                 autoFocus
               />
-              <Button
-                onClick={saveTempMarking}
-                disabled={!newMarkingLabel.trim()}
-              >
-                Save
-              </Button>
-              <Button variant="outline" onClick={cancelTempMarking}>
-                Cancel
-              </Button>
+              <input
+                type="url"
+                value={newMarkingUrl}
+                onChange={(e) => setNewMarkingUrl(e.target.value)}
+                placeholder="Enter a URL"
+                className="w-64 p-2 border rounded"
+              />
+              <div className="flex justify-end gap-2">
+                <Button
+                  onClick={saveTempMarking}
+                  disabled={!newMarkingLabel.trim()}
+                >
+                  Save
+                </Button>
+                <Button variant="outline" onClick={cancelTempMarking}>
+                  Cancel
+                </Button>
+              </div>
             </div>
           )}
         </div>

@@ -7,6 +7,7 @@ export interface MarkingData {
   id: string;
   label: string;
   position: [number, number, number];
+  url?: string; // optional URL
 }
 
 interface SceneProps {

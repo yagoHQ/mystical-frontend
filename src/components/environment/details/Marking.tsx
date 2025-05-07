@@ -24,6 +24,13 @@ export function Marking({ marking, onDelete, scale = 1 }: MarkingProps) {
     setIsBehindCamera(dirToCamera.dot(camForward) >= 0);
   });
 
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (marking.url) {
+      window.open(marking.url, '_blank');
+    }
+  };
+
   return (
     <group position={marking.position} scale={[scale, scale, scale]}>
       {!isBehindCamera && (
@@ -34,7 +41,10 @@ export function Marking({ marking, onDelete, scale = 1 }: MarkingProps) {
           zIndexRange={[100, 0]}
           occlude={false}
         >
-          <div className="bg-white px-3 py-2 rounded-lg shadow text-sm flex items-center">
+          <div
+            className="bg-white px-3 py-2 rounded-lg shadow text-sm flex items-center cursor-pointer"
+            onClick={handleClick}
+          >
             {/* larger dot */}
             <span className="w-4 h-4 bg-black rounded-full inline-block mr-2" />
             {marking.label}
