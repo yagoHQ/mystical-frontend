@@ -75,37 +75,26 @@ export default function EnvironmentDetail() {
       // Create a clean copy of the environment to avoid sending unnecessary properties
       const cleanEnvironment = {
         ...environment,
+        isEditable: false,
         scans: environment.scans.map((scan) => ({
           ...scan,
           // Ensure position, rotation and scale exist - prevents undefined errors
-          position: scan.position || [0, 0, 0],
-          rotation: scan.rotation || [0, 0, 0],
-          scale: scan.scale || [1, 1, 1],
+          position: scan.position,
+          rotation: scan.rotation,
+          scale: scan.scale,
         })),
       };
 
-      const updatedEnvironment = await updateEnvironment(cleanEnvironment);
+      console.log('Saving environment:', cleanEnvironment);
 
-      // Ensure the updated environment has consistent property names
-      const normalizedEnvironment = {
-        ...updatedEnvironment,
-        scans: updatedEnvironment.scans.map((scan) => ({
-          ...scan,
-          // Normalize to ensure properties exist
-          position: scan.position || [0, 0, 0],
-          rotation: scan.rotation || [0, 0, 0],
-          scale: scan.scale || [1, 1, 1],
-        })),
-      };
+      await updateEnvironment(cleanEnvironment);
 
       // Update local state with normalized data
-      setEnvironment(normalizedEnvironment);
+      setEnvironment(cleanEnvironment);
 
       // Show success message
-      alert('Environment updated successfully!');
     } catch (err) {
       console.error('Failed to update environment:', err);
-      alert('Failed to update environment. Please try again.');
     }
   };
 
@@ -174,24 +163,25 @@ export default function EnvironmentDetail() {
 
       {/* 3D Canvas */}
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Control panel - positioned absolute and taking only partial width */}
-        <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
-          <Select
-            value={controlMode}
-            onValueChange={(value) =>
-              setControlMode(value as typeof controlMode)
-            }
-          >
-            <SelectTrigger className="bg-white text-black border-gray-300">
-              <SelectValue placeholder="Select Tool" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="translate">Move</SelectItem>
-              <SelectItem value="rotate">Rotate</SelectItem>
-              <SelectItem value="scale">Scale</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {environment.isEditable && (
+          <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
+            <Select
+              value={controlMode}
+              onValueChange={(value) =>
+                setControlMode(value as typeof controlMode)
+              }
+            >
+              <SelectTrigger className="bg-white text-black border-gray-300">
+                <SelectValue placeholder="Select Tool" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="translate">Move</SelectItem>
+                <SelectItem value="rotate">Rotate</SelectItem>
+                <SelectItem value="scale">Scale</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         <Canvas
           camera={{
