@@ -143,12 +143,12 @@ export default function EnvironmentEdit() {
         <div className="flex-1 relative">
           <Canvas camera={{ position: [20, 60, 20], fov: 45 }}>
             <Scene
+              environment={environment}
               markings={markings}
               onAddMarking={handleAddMarking}
               onDeleteMarking={handleDeleteMarking}
               isAddingMode={true}
               markerScale={5}
-              scans={environment.scans}
             />
           </Canvas>
 

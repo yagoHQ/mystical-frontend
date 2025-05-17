@@ -13,13 +13,13 @@ export interface MarkingData {
 interface SceneProps {
   markings: MarkingData[];
   environment: Environment;
-  setEnvironment: (env: Environment) => void;
+  setEnvironment?: (env: Environment) => void;
   onAddMarking: (position: [number, number, number]) => void;
   onDeleteMarking: (id: string) => void;
   isAddingMode: boolean;
   /** Uniform scale for each marking */
   markerScale?: number;
-  controlMode: 'translate' | 'rotate' | 'scale';
+  controlMode?: 'translate' | 'rotate' | 'scale';
 }
 
 export function Scene({
@@ -51,10 +51,10 @@ export function Scene({
 
       <EnvironmentModel
         environment={normalizedEnvironment}
-        setEnvironment={setEnvironment}
+        setEnvironment={setEnvironment || (() => {})}
         onAddMarking={onAddMarking}
         isAddingMode={isAddingMode}
-        controlMode={controlMode}
+        controlMode={controlMode || 'translate'}
       />
 
       {markings.map((mark) => (
