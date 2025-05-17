@@ -84,9 +84,9 @@ function EnvironmentScanMesh({
   const { gl, camera } = useThree();
 
   // Get current rotation value
-  const currentRotation = scan.rotation;
-  const currentPosition = scan.position;
-  const currentScale = scan.scale;
+  const currentRotation = scan.rotation || [0, 0, 0];
+  const currentPosition = scan.position || [0, 0, 0];
+  const currentScale = scan.scale || [1, 1, 1];
 
   // Load and deep-clone the scene per scan
   // Ensure the URL has a proper format with unique query parameter
