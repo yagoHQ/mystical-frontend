@@ -18,6 +18,8 @@ interface SceneProps {
   /** Uniform scale for each marking */
   markerScale?: number;
   scans: [];
+  controlMode: 'translate' | 'rotate' | 'scale';
+  isEditable: boolean; // whether the environment is editable
 }
 
 export function Scene({
@@ -27,6 +29,8 @@ export function Scene({
   isAddingMode,
   markerScale = 1, // default 1×
   scans,
+  controlMode,
+  isEditable,
 }: SceneProps) {
   return (
     <>
@@ -37,6 +41,8 @@ export function Scene({
         onAddMarking={onAddMarking}
         isAddingMode={isAddingMode}
         scans={scans}
+        controlMode={controlMode}
+        isEditable={isEditable} // pass down the isEditable prop
       />
 
       {markings.map((mark) => (

@@ -7,6 +7,7 @@ export interface Environment {
   id: string;
   title: string;
   location: string;
+  isEditable: boolean;
   scannedBy: {
     id: string;
     name: string;

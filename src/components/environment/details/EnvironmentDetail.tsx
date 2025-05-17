@@ -9,6 +9,13 @@ import {
   Marking,
   deleteMarking,
 } from '@/api/environment.api';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function EnvironmentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +26,9 @@ export default function EnvironmentDetail() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAddingMode] = useState(true);
+  const [controlMode, setControlMode] = useState<
+    'translate' | 'rotate' | 'scale'
+  >('translate');
 
   useEffect(() => {
     if (!id) return;
@@ -87,7 +97,24 @@ export default function EnvironmentDetail() {
       </div>
 
       {/* 3D Canvas */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-2 overflow-hidden">
+        <div className="p-4 bg-gray-500">
+          <Select
+            value={controlMode}
+            onValueChange={(value) =>
+              setControlMode(value as typeof controlMode)
+            }
+          >
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Select Tool" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="translate">Move</SelectItem>
+              <SelectItem value="rotate">Rotate</SelectItem>
+              <SelectItem value="scale">Scale</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <Canvas
           camera={{
             position: [20, 60, 20],
@@ -103,7 +130,9 @@ export default function EnvironmentDetail() {
             onDeleteMarking={handleDeleteMarking}
             isAddingMode={isAddingMode}
             markerScale={1}
+            isEditable={environment.isEditable}
             scans={environment.scans}
+            controlMode={controlMode}
           />
         </Canvas>
       </div>
