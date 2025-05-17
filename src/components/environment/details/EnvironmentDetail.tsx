@@ -8,6 +8,7 @@ import {
   Environment as EnvType,
   Marking,
   deleteMarking,
+  updateEnvironment,
 } from '@/api/environment.api';
 import {
   Select,
@@ -67,6 +68,70 @@ export default function EnvironmentDetail() {
 
   const handleEdit = () => navigate(`/environment/${id}/edit`);
 
+  const handleSaveChanges = async () => {
+    try {
+      if (!environment) return;
+
+      // Create a clean copy of the environment to avoid sending unnecessary properties
+      const cleanEnvironment = {
+        ...environment,
+        scans: environment.scans.map((scan) => ({
+          ...scan,
+          // Ensure position, rotation and scale exist - prevents undefined errors
+          position: scan.position || [0, 0, 0],
+          rotation: scan.rotation || [0, 0, 0],
+          scale: scan.scale || [1, 1, 1],
+        })),
+      };
+
+      const updatedEnvironment = await updateEnvironment(cleanEnvironment);
+
+      // Ensure the updated environment has consistent property names
+      const normalizedEnvironment = {
+        ...updatedEnvironment,
+        scans: updatedEnvironment.scans.map((scan) => ({
+          ...scan,
+          // Normalize to ensure properties exist
+          position: scan.position || [0, 0, 0],
+          rotation: scan.rotation || [0, 0, 0],
+          scale: scan.scale || [1, 1, 1],
+        })),
+      };
+
+      // Update local state with normalized data
+      setEnvironment(normalizedEnvironment);
+
+      // Show success message
+      alert('Environment updated successfully!');
+    } catch (err) {
+      console.error('Failed to update environment:', err);
+      alert('Failed to update environment. Please try again.');
+    }
+  };
+
+  // Ensure environment data is properly structured
+  useEffect(() => {
+    if (environment) {
+      // Normalize scan data whenever environment changes
+      const normalizedEnvironment = {
+        ...environment,
+        scans: environment.scans.map((scan) => ({
+          ...scan,
+          // Ensure required properties exist
+          position: scan.position || [0, 0, 0],
+          rotation: scan.rotation || [0, 0, 0],
+          scale: scan.scale || [1, 1, 1],
+        })),
+      };
+
+      if (
+        JSON.stringify(environment) !== JSON.stringify(normalizedEnvironment)
+      ) {
+        setEnvironment(normalizedEnvironment);
+      }
+    }
+  }, [environment]);
+
   if (loading)
     return <div className="p-6 text-center">Loading environment…</div>;
   if (error)
@@ -88,7 +153,18 @@ export default function EnvironmentDetail() {
             </span>
           </div>
           <div className="flex gap-4">
-            <Button onClick={handleEdit}>Edit Marking</Button>
+            {environment.isEditable && (
+              <Button variant="outline" onClick={handleSaveChanges}>
+                Save Changes
+              </Button>
+            )}
+
+            {!environment.isEditable && (
+              <Button onClick={handleEdit} disabled={environment.isEditable}>
+                Edit Marking
+              </Button>
+            )}
+
             <Button variant="outline" onClick={() => navigate(-1)}>
               Back
             </Button>
@@ -97,15 +173,16 @@ export default function EnvironmentDetail() {
       </div>
 
       {/* 3D Canvas */}
-      <div className="flex flex-2 overflow-hidden">
-        <div className="p-4 bg-gray-500">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Control panel - positioned absolute and taking only partial width */}
+        <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
           <Select
             value={controlMode}
             onValueChange={(value) =>
               setControlMode(value as typeof controlMode)
             }
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="bg-white text-black border-gray-300">
               <SelectValue placeholder="Select Tool" />
             </SelectTrigger>
             <SelectContent>
@@ -115,6 +192,7 @@ export default function EnvironmentDetail() {
             </SelectContent>
           </Select>
         </div>
+
         <Canvas
           camera={{
             position: [20, 60, 20],
@@ -123,15 +201,14 @@ export default function EnvironmentDetail() {
             far: 5000, // super-far zoom
           }}
         >
-          {' '}
           <Scene
+            environment={environment}
+            setEnvironment={setEnvironment}
             markings={markings}
             onAddMarking={handleAddMarking}
             onDeleteMarking={handleDeleteMarking}
             isAddingMode={isAddingMode}
             markerScale={1}
-            isEditable={environment.isEditable}
-            scans={environment.scans}
             controlMode={controlMode}
           />
         </Canvas>

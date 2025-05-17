@@ -2,32 +2,32 @@ import { Suspense, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Html, TransformControls, useGLTF } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { Raycaster, Vector2, Group } from 'three';
+import { Environment } from '@/api/environment.api';
 
 // Define a scan type
 type Scan = {
   id: string;
   fileUrl: string;
-  originX: number;
-  originY: number;
-  originZ: number;
-  isEditable: boolean;
+  isEditable?: boolean;
   position: [number, number, number];
+  rotation: [number, number, number];
+  scale: [number, number, number];
 };
 
 export function EnvironmentModel({
+  environment,
+  setEnvironment,
   onAddMarking,
   isAddingMode,
-  scans,
   controlMode,
-  isEditable,
 }: {
   onAddMarking: (position: [number, number, number]) => void;
   isAddingMode: boolean;
-  scans: Scan[];
+  environment: Environment;
   controlMode: 'translate' | 'rotate' | 'scale';
-  isEditable: boolean;
+  setEnvironment: (env: Environment) => void;
 }) {
-  if (scans.length === 0) {
+  if (!environment.scans || environment.scans.length === 0) {
     return (
       <Html center>
         <div style={{ color: 'white', fontSize: '1.2em' }}>
@@ -36,8 +36,6 @@ export function EnvironmentModel({
       </Html>
     );
   }
-
-  console.log('scans', scans);
 
   return (
     <Suspense
@@ -49,11 +47,13 @@ export function EnvironmentModel({
         </Html>
       }
     >
-      {scans.map((scan) => (
+      {environment.scans.map((scan) => (
         <EnvironmentScanMesh
+          environment={environment}
+          setEnvironment={setEnvironment}
           key={scan.id}
           scan={scan}
-          isEditingEnabled={isEditable}
+          isEditingEnabled={environment.isEditable}
           isAddingMode={isAddingMode}
           onAddMarking={onAddMarking}
           controlMode={controlMode}
@@ -69,19 +69,31 @@ function EnvironmentScanMesh({
   isAddingMode,
   onAddMarking,
   controlMode,
+  environment,
+  setEnvironment,
 }: {
   scan: Scan;
   isEditingEnabled: boolean;
   isAddingMode: boolean;
   onAddMarking: (position: [number, number, number]) => void;
+  environment: Environment;
+  setEnvironment: (env: Environment) => void;
   controlMode: 'translate' | 'rotate' | 'scale';
 }) {
   const meshRef = useRef<Group>(null);
   const { gl, camera } = useThree();
 
+  // Get current rotation value
+  const currentRotation = scan.rotation;
+  const currentPosition = scan.position;
+  const currentScale = scan.scale;
+
   // Load and deep-clone the scene per scan
-  const gltf = useGLTF(scan.fileUrl + `?id=${scan.id}`, true);
-  const sceneClone = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
+  // Ensure the URL has a proper format with unique query parameter
+  const scanUrl =
+    scan.fileUrl + (scan.fileUrl.includes('?') ? '&' : '?') + `id=${scan.id}`;
+  const { scene } = useGLTF(scanUrl, true);
+  const sceneClone = useMemo(() => scene.clone(true), [scene]);
 
   // Click-to-mark logic
   const handleClick = useCallback(
@@ -103,6 +115,35 @@ function EnvironmentScanMesh({
     [isAddingMode, gl.domElement, camera, onAddMarking]
   );
 
+  // Handles logging and updating environment state on transform
+  const handleTransformChange = useCallback(() => {
+    const obj = meshRef.current;
+    if (!obj) return;
+
+    const newPosition = obj.position.toArray() as [number, number, number];
+    const newRotation = [obj.rotation.x, obj.rotation.y, obj.rotation.z] as [
+      number,
+      number,
+      number,
+    ];
+    const newScale = obj.scale.toArray() as [number, number, number];
+
+    // Update the specific scan in environment state
+    setEnvironment({
+      ...environment,
+      scans: environment.scans.map((s) =>
+        s.id === scan.id
+          ? {
+              ...s,
+              position: newPosition,
+              rotation: newRotation,
+              scale: newScale,
+            }
+          : s
+      ),
+    });
+  }, [scan.id, environment, setEnvironment]);
+
   useEffect(() => {
     const canvas = gl.domElement;
     if (isAddingMode) {
@@ -111,29 +152,23 @@ function EnvironmentScanMesh({
     }
   }, [isAddingMode, handleClick, gl.domElement]);
 
-  console.log('isEditingEnabled', isEditingEnabled);
+  // Ensure the transform controls are applied only when editing is enabled and the mesh is ready
+  const showTransformControls = isEditingEnabled && meshRef.current;
 
   return (
     <>
-      {isEditingEnabled && meshRef.current && (
+      {showTransformControls && (
         <TransformControls
-          object={meshRef.current}
+          object={meshRef as React.RefObject<Group>}
           mode={controlMode}
-          onChange={() => {
-            const obj = meshRef.current;
-            if (obj) {
-              console.log(`[${scan.id}] transform changed:`, {
-                position: obj.position.toArray(),
-                rotation: [obj.rotation.x, obj.rotation.y, obj.rotation.z],
-                scale: obj.scale.toArray(),
-              });
-            }
-          }}
+          onChange={handleTransformChange}
         />
       )}
       <group
         ref={meshRef}
-        position={[scan.position[0], scan.position[1], scan.position[2]]}
+        position={currentPosition}
+        rotation={currentRotation}
+        scale={currentScale}
       >
         <primitive object={sceneClone} />
       </group>

@@ -1,7 +1,7 @@
-// src/details/Scene.tsx
 import { OrbitControls } from '@react-three/drei';
 import { EnvironmentModel } from './EnvironmentModel';
 import { Marking } from './Marking';
+import { Environment } from '@/api/environment.api';
 
 export interface MarkingData {
   id: string;
@@ -12,37 +12,49 @@ export interface MarkingData {
 
 interface SceneProps {
   markings: MarkingData[];
+  environment: Environment;
+  setEnvironment: (env: Environment) => void;
   onAddMarking: (position: [number, number, number]) => void;
   onDeleteMarking: (id: string) => void;
   isAddingMode: boolean;
   /** Uniform scale for each marking */
   markerScale?: number;
-  scans: [];
   controlMode: 'translate' | 'rotate' | 'scale';
-  isEditable: boolean; // whether the environment is editable
 }
 
 export function Scene({
+  environment,
+  setEnvironment,
   markings,
   onAddMarking,
   onDeleteMarking,
   isAddingMode,
   markerScale = 1, // default 1×
-  scans,
   controlMode,
-  isEditable,
 }: SceneProps) {
+  // Ensure environment is properly normalized before passing to children
+  const normalizedEnvironment = {
+    ...environment,
+    scans: environment.scans.map((scan) => ({
+      ...scan,
+      // Ensure required properties exist
+      position: scan.position || [0, 0, 0],
+      rotation: scan.rotation || [0, 0, 0],
+      scale: scan.scale || [1, 1, 1],
+    })),
+  };
+
   return (
     <>
       <ambientLight intensity={0.7} />
       <directionalLight position={[5, 5, 5]} />
 
       <EnvironmentModel
+        environment={normalizedEnvironment}
+        setEnvironment={setEnvironment}
         onAddMarking={onAddMarking}
         isAddingMode={isAddingMode}
-        scans={scans}
         controlMode={controlMode}
-        isEditable={isEditable} // pass down the isEditable prop
       />
 
       {markings.map((mark) => (

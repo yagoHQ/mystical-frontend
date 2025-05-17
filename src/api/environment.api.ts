@@ -14,7 +14,14 @@ export interface Environment {
     email: string;
   };
   scannedDate: string;
-  scans: [];
+  scans: {
+    id: string;
+    fileUrl: string;
+    isEditable: boolean;
+    position: [number, number, number];
+    rotation: [number, number, number];
+    scale: [number, number, number];
+  }[];
   createdAt: string;
   markings?: ApiMarking[]; // Add the optional 'markings' property
 }
@@ -67,6 +74,21 @@ export interface AddMarkingRequest {
 export async function getEnvironments(): Promise<Environment[]> {
   try {
     const { data } = await apiClient.get<Environment[]>('/api/environments');
+    return data;
+  } catch (err) {
+    const message = handleApiError(err);
+    throw new Error(message);
+  }
+}
+
+export async function updateEnvironment(
+  environment: Environment
+): Promise<Environment> {
+  try {
+    const { data } = await apiClient.post<Environment>(
+      `/api/environments/updateScans`,
+      environment
+    );
     return data;
   } catch (err) {
     const message = handleApiError(err);
