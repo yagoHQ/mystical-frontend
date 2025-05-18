@@ -35,6 +35,7 @@ export interface Marking {
   label: string;
   position: [number, number, number];
   remark?: string;
+  createdAt: string;
   x?: number;
   y?: number;
   z?: number;
@@ -135,6 +136,7 @@ export function convertApiMarkingsToComponentFormat(
     label: mark.remark || 'Unnamed Marking',
     position: [mark.x, mark.y, mark.z] as [number, number, number],
     url: mark.url || '', // Include URL if available
+    createdAt: mark.createdAt || '',
   }));
 }
 

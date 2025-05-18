@@ -7,11 +7,10 @@ import type { MarkingData } from './Scene';
 
 interface MarkingProps {
   marking: MarkingData;
-  onDelete: (id: string) => void;
   scale?: number;
 }
 
-export function Marking({ marking, onDelete, scale = 1 }: MarkingProps) {
+export function Marking({ marking, scale = 1 }: MarkingProps) {
   const { camera } = useThree();
   const [isBehindCamera, setIsBehindCamera] = useState(false);
 
@@ -48,12 +47,6 @@ export function Marking({ marking, onDelete, scale = 1 }: MarkingProps) {
             {/* larger dot */}
             <span className="w-4 h-4 bg-black rounded-full inline-block mr-2" />
             {marking.label}
-            <button
-              className="ml-3 text-red-500 hover:text-red-700 font-bold"
-              onClick={() => onDelete(marking.id)}
-            >
-              ×
-            </button>
           </div>
         </Html>
       )}

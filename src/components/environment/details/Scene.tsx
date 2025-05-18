@@ -27,7 +27,6 @@ export function Scene({
   setEnvironment,
   markings,
   onAddMarking,
-  onDeleteMarking,
   isAddingMode,
   markerScale = 1, // default 1×
   controlMode,
@@ -61,7 +60,6 @@ export function Scene({
         <Marking
           key={mark.id}
           marking={mark}
-          onDelete={onDeleteMarking}
           scale={markerScale} // ← pass it down
         />
       ))}

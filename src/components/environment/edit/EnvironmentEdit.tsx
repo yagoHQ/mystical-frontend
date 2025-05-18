@@ -13,6 +13,7 @@ import {
   convertApiMarkingsToComponentFormat,
   deleteMarking,
 } from '@/api/environment.api';
+import { LeftSidebar } from './LeftSidebar';
 
 export default function EnvironmentEdit() {
   const { id } = useParams<{ id: string }>();
@@ -113,6 +114,12 @@ export default function EnvironmentEdit() {
     }
   };
 
+  useEffect(() => {
+    if (environment) {
+      console.log('Environment loaded:', environment);
+    }
+  }, [environment]);
+
   // 4️⃣ Render loading / error
   if (loading)
     return <div className="p-6 text-center">Loading environment…</div>;
@@ -139,6 +146,13 @@ export default function EnvironmentEdit() {
 
       {/* 3D + Sidebar */}
       <div className="flex flex-1 overflow-hidden">
+        <LeftSidebar
+          scans={environment.scans}
+          onSelectImage={(url) => {
+            // you could pan/zoom your Scene to focus on a texture, etc.
+            console.log('thumbnail clicked:', url);
+          }}
+        />
         {/* Canvas */}
         <div className="flex-1 relative">
           <Canvas camera={{ position: [20, 60, 20], fov: 45 }}>
@@ -151,12 +165,6 @@ export default function EnvironmentEdit() {
               markerScale={5}
             />
           </Canvas>
-
-          {!tempPosition && (
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white px-4 py-2 rounded-full z-20">
-              Click on the model to add a marking
-            </div>
-          )}
 
           {/* Temporary Label + URL Entry */}
           {tempPosition && (

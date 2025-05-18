@@ -43,6 +43,7 @@ export default function EnvironmentDetail() {
             label: m.remark ?? '',
             position: [m.x, m.y, m.z] as [number, number, number],
             url: m.url ? m.url : '',
+            createdAt: m.createdAt ?? '',
           }))
         );
       })
