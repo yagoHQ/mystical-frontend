@@ -138,7 +138,11 @@ export default function EnvironmentEdit() {
           <Button onClick={() => navigate(-1)} variant="outline">
             Cancel
           </Button>
-          <Button onClick={saveAllMarkings} disabled={saving}>
+          <Button
+            onClick={saveAllMarkings}
+            className="bg-blue-500 text-white hover:bg-blue-600"
+            disabled={saving}
+          >
             {saving ? 'Saving…' : 'Save Changes'}
           </Button>
         </div>

@@ -11,6 +11,7 @@ import Environment from './components/environment/Environment';
 import EnvironmentDetail from './components/environment/details/EnvironmentDetail';
 import EnvironmentEditPage from './pages/EnvironmentEdit';
 import EnvironmentLayout from './components/environment/edit/EnvironmentLayout';
+import MarkingDetails from './components/marking/MarkingDetails';
 
 const isAuthenticated = localStorage.getItem('token') !== null;
 
@@ -70,6 +71,20 @@ const appRouter = createBrowserRouter([
       {
         path: '',
         element: <EnvironmentEditPage />,
+      },
+    ],
+  },
+  {
+    path: '/marking/:id',
+    element: (
+      <ProtectedRoute>
+        <DashboardLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: '',
+        element: <MarkingDetails />,
       },
     ],
   },

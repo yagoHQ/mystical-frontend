@@ -53,7 +53,7 @@ export default function ScannedEnvironmentTable() {
         <span>Scanned By</span>
         <span>Area ID</span>
         <span>Scanned Date</span>
-        <span># of Scans</span>
+        <span>Number of Scans</span>
         <span /> {/* actions */}
       </div>
 

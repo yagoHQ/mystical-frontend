@@ -6,7 +6,7 @@ export default function ScannedEnvironmentHeader() {
   return (
     <div className="space-y-6">
       {/* Title */}
-      <div className="bg-white rounded-full px-8 py-4 shadow text-xl font-semibold w-fit">
+      <div className="bg-white rounded-full px-6 py-3 shadow-lg text-2xl font-semibold">
         Scanned Environment
       </div>
 

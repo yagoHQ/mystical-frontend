@@ -133,8 +133,8 @@ export default function EnvironmentDetail() {
   return (
     <div className="flex flex-col h-screen w-full">
       {/* Info Bar */}
-      <div className="flex flex-col px-8 py-5 bg-white">
-        <div className="text-2xl font-semibold px-6 py-3 rounded-full shadow-lg">
+      <div className="flex flex-col px-8 py-5">
+        <div className="bg-white rounded-full px-6 py-3 shadow-lg text-2xl font-semibold">
           {environment.title}
         </div>
         <div className="mt-4 flex justify-between items-center">
@@ -152,7 +152,11 @@ export default function EnvironmentDetail() {
             )}
 
             {!environment.isEditable && (
-              <Button onClick={handleEdit} disabled={environment.isEditable}>
+              <Button
+                onClick={handleEdit}
+                className="bg-blue-500 text-white hover:bg-blue-600"
+                disabled={environment.isEditable}
+              >
                 Edit Marking
               </Button>
             )}
