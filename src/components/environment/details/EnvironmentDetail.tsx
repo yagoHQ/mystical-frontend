@@ -166,45 +166,54 @@ export default function EnvironmentDetail() {
 
       {/* 3D Canvas */}
       <div className="flex flex-1 overflow-hidden relative">
-        {environment.isEditable && (
-          <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
-            <Select
-              value={controlMode}
-              onValueChange={(value) =>
-                setControlMode(value as typeof controlMode)
-              }
+        {environment.scans.length > 0 && (
+          <>
+            {environment.isEditable && (
+              <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
+                <Select
+                  value={controlMode}
+                  onValueChange={(value) =>
+                    setControlMode(value as typeof controlMode)
+                  }
+                >
+                  <SelectTrigger className="bg-white text-black border-gray-300">
+                    <SelectValue placeholder="Select Tool" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="translate">Move</SelectItem>
+                    <SelectItem value="rotate">Rotate</SelectItem>
+                    <SelectItem value="scale">Scale</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <Canvas
+              camera={{
+                position: [20, 60, 20],
+                fov: 45,
+                near: 0.01, // super-close zoom
+                far: 5000, // super-far zoom
+              }}
             >
-              <SelectTrigger className="bg-white text-black border-gray-300">
-                <SelectValue placeholder="Select Tool" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="translate">Move</SelectItem>
-                <SelectItem value="rotate">Rotate</SelectItem>
-                <SelectItem value="scale">Scale</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <Scene
+                environment={environment}
+                setEnvironment={setEnvironment}
+                markings={markings}
+                onAddMarking={handleAddMarking}
+                onDeleteMarking={handleDeleteMarking}
+                isAddingMode={isAddingMode}
+                markerScale={1}
+                controlMode={controlMode}
+              />
+            </Canvas>
+          </>
         )}
 
-        <Canvas
-          camera={{
-            position: [20, 60, 20],
-            fov: 45,
-            near: 0.01, // super-close zoom
-            far: 5000, // super-far zoom
-          }}
-        >
-          <Scene
-            environment={environment}
-            setEnvironment={setEnvironment}
-            markings={markings}
-            onAddMarking={handleAddMarking}
-            onDeleteMarking={handleDeleteMarking}
-            isAddingMode={isAddingMode}
-            markerScale={1}
-            controlMode={controlMode}
-          />
-        </Canvas>
+        {environment.scans.length === 0 && (
+          <div className="flex items-center justify-center w-full h-full">
+            <p className="text-gray-500">No scans available.</p>
+          </div>
+        )}
       </div>
     </div>
   );

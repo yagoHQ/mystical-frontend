@@ -25,9 +25,13 @@ export function Marking({ marking, scale = 1 }: MarkingProps) {
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (marking.url) {
-      window.open(marking.url, '_blank');
-    }
+    const { url } = marking;
+    if (!url) return;
+
+    // prepend https:// if missing
+    const href = /^https?:\/\//.test(url) ? url : `https://${url}`;
+
+    window.open(href, '_blank');
   };
 
   return (

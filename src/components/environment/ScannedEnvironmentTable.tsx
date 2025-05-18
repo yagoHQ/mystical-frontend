@@ -118,18 +118,6 @@ export default function ScannedEnvironmentTable() {
                     <div className="flex justify-between items-center">
                       <h4 className="font-medium">{scan.scanName}</h4>
                     </div>
-
-                    {/* thumbnails */}
-                    <div className="flex space-x-2 overflow-x-auto">
-                      {scan.images.map((url: string) => (
-                        <img
-                          key={url}
-                          src={url}
-                          alt={scan.scanName}
-                          className="h-16 w-16 object-cover rounded"
-                        />
-                      ))}
-                    </div>
                   </div>
                 ))}
               </div>
