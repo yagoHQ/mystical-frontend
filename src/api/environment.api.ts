@@ -14,16 +14,20 @@ export interface Environment {
     email: string;
   };
   scannedDate: string;
-  scans: {
-    id: string;
-    fileUrl: string;
-    isEditable: boolean;
-    position: [number, number, number];
-    rotation: [number, number, number];
-    scale: [number, number, number];
-  }[];
+  scans: Scan[];
   createdAt: string;
   markings?: ApiMarking[]; // Add the optional 'markings' property
+}
+
+export interface Scan {
+  scanName: string;
+  images: string[];
+  id: string;
+  fileUrl: string;
+  isEditable: boolean;
+  position: [number, number, number];
+  rotation: [number, number, number];
+  scale: [number, number, number];
 }
 
 export interface Marking {

@@ -92,6 +92,8 @@ export default function EnvironmentDetail() {
       // Update local state with normalized data
       setEnvironment(cleanEnvironment);
 
+      window.location.reload();
+
       // Show success message
     } catch (err) {
       console.error('Failed to update environment:', err);
