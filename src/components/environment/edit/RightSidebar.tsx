@@ -48,6 +48,11 @@ export function RightSidebar({
     setMarkingToDelete(null);
   };
 
+  const handleMarkingClick = (id: string) => {
+    setSelectedId(id);
+    navigate(`/marking/${id}`);
+  };
+
   return (
     <div className="w-[400px] bg-white shadow-inner flex flex-col">
       {/* Header */}
@@ -65,7 +70,7 @@ export function RightSidebar({
           return (
             <div
               key={m.id}
-              onClick={() => setSelectedId(m.id)}
+              onClick={() => handleMarkingClick(m.id)}
               className={`flex justify-between items-start p-3 rounded-md cursor-pointer transition-colors
                 ${isSelected ? 'bg-blue-50' : 'bg-white hover:bg-gray-50'}`}
             >
