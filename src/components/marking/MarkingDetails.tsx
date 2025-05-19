@@ -84,12 +84,12 @@ export default function MarkingDetails() {
       {/* Table Controls + Table */}
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
         {/* Header */}
-        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_40px] items-center px-4 py-3 border-b text-sm font-semibold text-gray-600 bg-gray-50">
+        {/* Header */}
+        <div className="grid grid-cols-[2fr_1fr_1fr_1fr_40px] items-center px-4 py-3 border-b text-sm font-semibold text-gray-600 bg-gray-50">
           <div>Comments</div>
           <div>Comment By</div>
           <div>Timestamp</div>
           <div>Status</div>
-          <div>Reply</div>
           <div>Actions</div>
         </div>
 
@@ -97,13 +97,12 @@ export default function MarkingDetails() {
         {rows.map((r) => (
           <div
             key={r.id}
-            className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_40px] items-center px-4 py-3 border-b text-sm hover:bg-gray-50 cursor-pointer"
+            className="grid grid-cols-[2fr_1fr_1fr_1fr_40px] items-center px-4 py-3 border-b text-sm hover:bg-gray-50 cursor-pointer"
           >
             <div className="font-medium">{r.comment}</div>
             <div className="text-xs text-gray-500">{r.commentBy}</div>
             <div>{new Date(r.timestamp).toLocaleString()}</div>
             <div>{r.status}</div>
-            <div>{r.reply}</div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
