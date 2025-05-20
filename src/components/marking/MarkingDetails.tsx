@@ -1,10 +1,10 @@
-// src/pages/MarkingDetails.tsx
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Filter, Search, Trash2 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getMarkingById } from '@/api/marking.api';
+import { deleteComment, getMarkingById } from '@/api/marking.api';
+import { ConfirmDeleteModal } from '@/shared/ConfirmDeleteModal';
 
 interface Comment {
   id: string;
@@ -18,9 +18,14 @@ interface Comment {
 export default function MarkingDetails() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [marking, setMarking] = useState<any>(null); // Adjust type as needed
+  const [marking, setMarking] = useState<any>(null);
+
+  // Modal state
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<Comment | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -29,7 +34,6 @@ export default function MarkingDetails() {
         const marking = await getMarkingById(id);
         setComments(marking.comments || []);
         setMarking(marking);
-        console.log('Marking:', marking);
       } catch (err) {
         console.error('Error fetching marking:', err);
       } finally {
@@ -38,6 +42,24 @@ export default function MarkingDetails() {
     };
     fetchData();
   }, [id]);
+
+  const handleDeleteClick = (comment: Comment) => {
+    setCommentToDelete(comment);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!commentToDelete) return;
+    try {
+      await deleteComment(commentToDelete.id);
+      setComments((prev) => prev.filter((c) => c.id !== commentToDelete.id));
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+    } finally {
+      setDeleteModalOpen(false);
+      setCommentToDelete(null);
+    }
+  };
 
   return (
     <div className="space-y-6 p-8 bg-gray-50 min-h-screen">
@@ -84,7 +106,6 @@ export default function MarkingDetails() {
       </div>
 
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        {/* Table Header */}
         <div className="grid grid-cols-[2fr_1fr_1fr_40px] items-center px-4 py-3 border-b text-sm font-semibold text-gray-600 bg-gray-50">
           <div>Comment</div>
           <div>Comment By</div>
@@ -92,7 +113,6 @@ export default function MarkingDetails() {
           <div>Actions</div>
         </div>
 
-        {/* Table Rows */}
         {loading ? (
           <div className="p-4 text-center text-gray-500">Loading...</div>
         ) : comments.length === 0 ? (
@@ -118,7 +138,7 @@ export default function MarkingDetails() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  // delete handler
+                  handleDeleteClick(c);
                 }}
                 className="text-gray-400 hover:text-red-600"
               >
@@ -128,7 +148,6 @@ export default function MarkingDetails() {
           ))
         )}
 
-        {/* Pagination Placeholder */}
         <div className="flex items-center justify-between px-4 py-3 bg-gray-50 text-sm text-gray-600">
           <Button variant="outline" size="sm" disabled>
             Previous
@@ -139,6 +158,17 @@ export default function MarkingDetails() {
           </Button>
         </div>
       </div>
+
+      {/* Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={deleteModalOpen}
+        title="comment"
+        onConfirm={confirmDelete}
+        onCancel={() => {
+          setDeleteModalOpen(false);
+          setCommentToDelete(null);
+        }}
+      />
     </div>
   );
 }
