@@ -23,6 +23,7 @@ export default function EnvironmentDetail() {
   const navigate = useNavigate();
 
   const [environment, setEnvironment] = useState<EnvType | null>(null);
+  const [originalEnv, setOriginalEnv] = useState<EnvType | null>(null);
   const [markings, setMarkings] = useState<Marking[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,18 +32,20 @@ export default function EnvironmentDetail() {
     'translate' | 'rotate' | 'scale'
   >('translate');
 
+  // Load environment once
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     getEnvironmentById(id)
       .then((env) => {
         setEnvironment(env);
+        setOriginalEnv(env); // stash the pristine copy
         setMarkings(
           (env.markings || []).map((m) => ({
             id: m.id,
             label: m.remark ?? '',
             position: [m.x, m.y, m.z] as [number, number, number],
-            url: m.url ? m.url : '',
+            url: m.url ?? '',
             createdAt: m.createdAt ?? '',
           }))
         );
@@ -52,15 +55,12 @@ export default function EnvironmentDetail() {
   }, [id]);
 
   const handleAddMarking = () => {
-    return;
+    // your existing add-marking logic
   };
 
   const handleDeleteMarking = async (markingId: string) => {
     try {
-      // 1️⃣ delete on the server
       await deleteMarking(markingId);
-
-      // 2️⃣ update local state
       setMarkings((prev) => prev.filter((m) => m.id !== markingId));
     } catch (err) {
       console.error('Failed to delete marking:', err);
@@ -69,17 +69,34 @@ export default function EnvironmentDetail() {
 
   const handleEdit = () => navigate(`/environment/${id}/edit`);
 
+  // Toggle edit‐mode on the same flag your UI already uses:
+  const handleToggleEditEnv = () => {
+    setEnvironment((prev) => {
+      if (!prev) return prev;
+
+      if (prev.isEditable) {
+        // Cancel → restore originalEnv
+        return originalEnv
+          ? { ...originalEnv, isEditable: false }
+          : { ...prev, isEditable: false };
+      } else {
+        // Enter edit → stash current
+        setOriginalEnv(prev);
+        return { ...prev, isEditable: true };
+      }
+    });
+  };
+
   const handleSaveChanges = async () => {
     try {
       if (!environment) return;
 
-      // Create a clean copy of the environment to avoid sending unnecessary properties
+      // Build clean payload
       const cleanEnvironment = {
         ...environment,
         isEditable: false,
         scans: environment.scans.map((scan) => ({
           ...scan,
-          // Ensure position, rotation and scale exist - prevents undefined errors
           position: scan.position,
           rotation: scan.rotation,
           scale: scan.scale,
@@ -87,40 +104,31 @@ export default function EnvironmentDetail() {
       };
 
       console.log('Saving environment:', cleanEnvironment);
-
       await updateEnvironment(cleanEnvironment);
-
-      // Update local state with normalized data
       setEnvironment(cleanEnvironment);
 
       window.location.reload();
 
-      // Show success message
+      // optional: show success toast
     } catch (err) {
       console.error('Failed to update environment:', err);
     }
   };
 
-  // Ensure environment data is properly structured
+  // Normalize scan arrays on every change
   useEffect(() => {
-    if (environment) {
-      // Normalize scan data whenever environment changes
-      const normalizedEnvironment = {
-        ...environment,
-        scans: environment.scans.map((scan) => ({
-          ...scan,
-          // Ensure required properties exist
-          position: scan.position || [0, 0, 0],
-          rotation: scan.rotation || [0, 0, 0],
-          scale: scan.scale || [1, 1, 1],
-        })),
-      };
-
-      if (
-        JSON.stringify(environment) !== JSON.stringify(normalizedEnvironment)
-      ) {
-        setEnvironment(normalizedEnvironment);
-      }
+    if (!environment) return;
+    const normalized = {
+      ...environment,
+      scans: environment.scans.map((scan) => ({
+        ...scan,
+        position: scan.position || [0, 0, 0],
+        rotation: scan.rotation || [0, 0, 0],
+        scale: scan.scale || [1, 1, 1],
+      })),
+    };
+    if (JSON.stringify(normalized) !== JSON.stringify(environment)) {
+      setEnvironment(normalized);
     }
   }, [environment]);
 
@@ -151,15 +159,24 @@ export default function EnvironmentDetail() {
               </Button>
             )}
 
-            {!environment.isEditable && (
-              <Button
-                onClick={handleEdit}
-                className="bg-blue-500 text-white hover:bg-blue-600"
-                disabled={environment.isEditable}
-              >
-                Edit Marking
-              </Button>
-            )}
+            <Button
+              onClick={handleToggleEditEnv}
+              className={
+                environment.isEditable
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : 'bg-green-500 text-white hover:bg-green-600'
+              }
+            >
+              {environment.isEditable ? 'Cancel' : 'Edit Environment'}
+            </Button>
+
+            <Button
+              onClick={handleEdit}
+              className="bg-blue-500 text-white hover:bg-blue-600"
+              disabled={environment.isEditable}
+            >
+              Edit Marking
+            </Button>
 
             <Button variant="outline" onClick={() => navigate(-1)}>
               Back
@@ -170,7 +187,7 @@ export default function EnvironmentDetail() {
 
       {/* 3D Canvas */}
       <div className="flex flex-1 overflow-hidden relative">
-        {environment.scans.length > 0 && (
+        {environment.scans.length > 0 ? (
           <>
             {environment.isEditable && (
               <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
@@ -195,8 +212,8 @@ export default function EnvironmentDetail() {
               camera={{
                 position: [20, 60, 20],
                 fov: 45,
-                near: 0.01, // super-close zoom
-                far: 5000, // super-far zoom
+                near: 0.01,
+                far: 5000,
               }}
             >
               <Scene
@@ -211,9 +228,7 @@ export default function EnvironmentDetail() {
               />
             </Canvas>
           </>
-        )}
-
-        {environment.scans.length === 0 && (
+        ) : (
           <div className="flex items-center justify-center w-full h-full">
             <p className="text-gray-500">No scans available.</p>
           </div>
