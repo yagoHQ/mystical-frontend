@@ -32,3 +32,12 @@ export async function getMarkingById(id: string): Promise<ApiMarking> {
     throw new Error(message);
   }
 }
+
+export async function deleteComment(commentId: string): Promise<void> {
+  try {
+    await apiClient.delete(`/api/comments/${commentId}`);
+  } catch (err) {
+    const message = handleApiError(err);
+    throw new Error(message);
+  }
+}
