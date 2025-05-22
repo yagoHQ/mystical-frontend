@@ -12,7 +12,10 @@ interface RecentCardProps {
   items?: RecentItem[];
 }
 
-export const RecentCard: React.FC<RecentCardProps> = ({ title, items = [] }) => {
+export const RecentCard: React.FC<RecentCardProps> = ({
+  title,
+  items = [],
+}) => {
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 w-full min-h-[200px] flex flex-col">
       <h2 className="text-lg font-semibold mb-6">{title}</h2>
@@ -26,8 +29,12 @@ export const RecentCard: React.FC<RecentCardProps> = ({ title, items = [] }) => 
           {items.map((item) => (
             <li key={item.id} className="text-sm">
               <div className="font-medium">{item.title}</div>
-              {item.subtitle && <div className="text-gray-500">{item.subtitle}</div>}
-              {item.date && <div className="text-gray-400 text-xs">{item.date}</div>}
+              {item.subtitle && (
+                <div className="text-gray-500">{item.subtitle}</div>
+              )}
+              {item.date && (
+                <div className="text-gray-400 text-xs">{item.date}</div>
+              )}
             </li>
           ))}
         </ul>

@@ -71,7 +71,9 @@ export default function Dashboard() {
                 <tr key={area.id} className="border-b">
                   <td className="px-2 py-2">{area.title}</td>
                   <td className="px-2 py-2">{area.location}</td>
-                  <td className="px-2 py-2">{new Date(area.createdAt).toLocaleDateString()}</td>
+                  <td className="px-2 py-2">
+                    {new Date(area.createdAt).toLocaleDateString()}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -94,7 +96,9 @@ export default function Dashboard() {
                 <tr key={marking.id} className="border-b">
                   <td className="px-2 py-2">{marking.remark}</td>
                   <td className="px-2 py-2">{marking.environmentTitle}</td>
-                  <td className="px-2 py-2">{new Date(marking.createdAt).toLocaleDateString()}</td>
+                  <td className="px-2 py-2">
+                    {new Date(marking.createdAt).toLocaleDateString()}
+                  </td>
                 </tr>
               ))}
             </tbody>
