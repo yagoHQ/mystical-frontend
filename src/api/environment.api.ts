@@ -151,3 +151,36 @@ export function deleteMarking(markingId: string): Promise<void> {
       throw new Error(message);
     });
 }
+
+export async function getDashboardData(): Promise<{
+  areaScanned: number;
+  totalUsers: number;
+  totalMarkings: number;
+  totalSuggestions: number;
+  recentAreas: {
+    id: string;
+    title: string;
+    location: string;
+    createdAt: string;
+  }[];
+  recentSuggestions: {
+    id: string;
+    markingId: string;
+    createdAt: string;
+  }[];
+  recentMarkings: {
+    id: string;
+    createdAt: string;
+    remark: string;
+    environmentId: string;
+    environmentTitle: string;
+  }[];
+}> {
+  try {
+    const { data } = await apiClient.get('/api/environments/dashboard/getData');
+    return data;
+  } catch (err) {
+    const message = handleApiError(err);
+    throw new Error(message);
+  }
+}
