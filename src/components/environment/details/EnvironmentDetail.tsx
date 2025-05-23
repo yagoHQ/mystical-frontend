@@ -138,12 +138,22 @@ export default function EnvironmentDetail() {
     return <div className="p-6 text-center text-red-600">Error: {error}</div>;
   if (!environment) return null;
 
+  // 1) detect any USDZ files
+  const hasUSDZ = environment.scans.some((scan) =>
+    /\.usdz(\?|$)/i.test(scan.fileUrl)
+  );
+
   return (
     <div className="flex flex-col h-screen w-full">
       {/* Info Bar */}
       <div className="flex flex-col px-8 py-5">
         <div className="bg-white rounded-full px-6 py-3 shadow-lg text-2xl font-semibold">
           {environment.title}
+          {hasUSDZ && (
+            <span className="ml-4 inline-block bg-yellow-200 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full">
+              USDZ Model
+            </span>
+          )}
         </div>
         <div className="mt-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -186,54 +196,62 @@ export default function EnvironmentDetail() {
       </div>
 
       {/* 3D Canvas */}
-      <div className="flex flex-1 overflow-hidden relative">
-        {environment.scans.length > 0 ? (
-          <>
-            {environment.isEditable && (
-              <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
-                <Select
-                  value={controlMode}
-                  onValueChange={(value) =>
-                    setControlMode(value as typeof controlMode)
-                  }
-                >
-                  <SelectTrigger className="bg-white text-black border-gray-300">
-                    <SelectValue placeholder="Select Tool" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="translate">Move</SelectItem>
-                    <SelectItem value="rotate">Rotate</SelectItem>
-                    <SelectItem value="scale">Scale</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            <Canvas
-              camera={{
-                position: [20, 60, 20],
-                fov: 45,
-                near: 0.01,
-                far: 5000,
-              }}
-            >
-              <Scene
-                environment={environment}
-                setEnvironment={setEnvironment}
-                markings={markings}
-                onAddMarking={handleAddMarking}
-                onDeleteMarking={handleDeleteMarking}
-                isAddingMode={isAddingMode}
-                markerScale={1}
-                controlMode={controlMode}
-              />
-            </Canvas>
-          </>
-        ) : (
-          <div className="flex items-center justify-center w-full h-full">
-            <p className="text-gray-500">No scans available.</p>
-          </div>
-        )}
-      </div>
+
+      {hasUSDZ ? (
+        <div className="flex-1 flex items-center justify-center bg-yellow-50 text-yellow-800 p-6">
+          ⚠️ This environment uses USDZ files, which aren’t supported for 3D
+          viewing yet.
+        </div>
+      ) : (
+        <div className="flex flex-1 overflow-hidden relative">
+          {environment.scans.length > 0 ? (
+            <>
+              {environment.isEditable && (
+                <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
+                  <Select
+                    value={controlMode}
+                    onValueChange={(value) =>
+                      setControlMode(value as typeof controlMode)
+                    }
+                  >
+                    <SelectTrigger className="bg-white text-black border-gray-300">
+                      <SelectValue placeholder="Select Tool" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="translate">Move</SelectItem>
+                      <SelectItem value="rotate">Rotate</SelectItem>
+                      <SelectItem value="scale">Scale</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <Canvas
+                camera={{
+                  position: [20, 60, 20],
+                  fov: 45,
+                  near: 0.01,
+                  far: 5000,
+                }}
+              >
+                <Scene
+                  environment={environment}
+                  setEnvironment={setEnvironment}
+                  markings={markings}
+                  onAddMarking={handleAddMarking}
+                  onDeleteMarking={handleDeleteMarking}
+                  isAddingMode={isAddingMode}
+                  markerScale={1}
+                  controlMode={controlMode}
+                />
+              </Canvas>
+            </>
+          ) : (
+            <div className="flex items-center justify-center w-full h-full">
+              <p className="text-gray-500">No scans available.</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

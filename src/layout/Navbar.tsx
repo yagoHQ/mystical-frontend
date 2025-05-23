@@ -1,6 +1,4 @@
-import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar';
-import { Bell } from 'lucide-react';
 
 // This is purely a UI example – adjust styles, text, and structure as you see fit.
 const Navbar = () => {
@@ -21,12 +19,9 @@ const Navbar = () => {
           {/* User name */}
           <h1 className="text-base font-medium whitespace-nowrap">Test User</h1>
         </div>
-
-       
       </div>
 
       {/* Right Section: Notification Icon (Bell) + Badge */}
-     
     </header>
   );
 };
