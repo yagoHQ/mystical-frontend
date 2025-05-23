@@ -38,7 +38,13 @@ export function LeftSidebar({
   );
 }
 
-function ImageButton({ url, onClick }: { url: string; onClick?: (url: string) => void }) {
+function ImageButton({
+  url,
+  onClick,
+}: {
+  url: string;
+  onClick?: (url: string) => void;
+}) {
   const [src, setSrc] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const ext = url.split('.').pop()?.toLowerCase();
