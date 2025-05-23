@@ -127,12 +127,21 @@ export default function EnvironmentEdit() {
     return <div className="p-6 text-center text-red-600">Error: {error}</div>;
   if (!environment) return null;
 
+  const hasUSDZ = environment.scans.some((scan) =>
+    /\.usdz(\?|$)/i.test(scan.fileUrl)
+  );
+
   return (
     <div className="flex flex-col h-screen w-full">
       {/* Header */}
       <div className="flex items-center justify-between px-8 py-4 bg-white shadow">
         <h1 className="text-2xl font-semibold">
           {environment.title} – Edit Markings
+          {hasUSDZ && (
+            <span className="ml-4 inline-block bg-yellow-200 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full">
+              USDZ Model
+            </span>
+          )}
         </h1>
         <div className="flex gap-2">
           <Button onClick={() => navigate(-1)} variant="outline">
@@ -149,6 +158,7 @@ export default function EnvironmentEdit() {
       </div>
 
       {/* 3D + Sidebar */}
+
       <div className="flex flex-1 overflow-hidden">
         <LeftSidebar
           scans={environment.scans}
@@ -158,50 +168,58 @@ export default function EnvironmentEdit() {
           }}
         />
         {/* Canvas */}
-        <div className="flex-1 relative">
-          <Canvas camera={{ position: [20, 60, 20], fov: 45 }}>
-            <Scene
-              environment={environment}
-              markings={markings}
-              onAddMarking={handleAddMarking}
-              onDeleteMarking={handleDeleteMarking}
-              isAddingMode={true}
-              markerScale={5}
-            />
-          </Canvas>
 
-          {/* Temporary Label + URL Entry */}
-          {tempPosition && (
-            <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 bg-white p-4 shadow rounded-md space-y-2">
-              <input
-                type="text"
-                value={newMarkingLabel}
-                onChange={(e) => setNewMarkingLabel(e.target.value)}
-                placeholder="Enter marking text"
-                className="w-64 p-2 border rounded"
-                autoFocus
+        {hasUSDZ ? (
+          <div className="flex-1 flex items-center justify-center bg-yellow-50 text-yellow-800 p-6">
+            ⚠️ This environment uses USDZ files, which aren’t supported for 3D
+            viewing yet.
+          </div>
+        ) : (
+          <div className="flex-1 relative">
+            <Canvas camera={{ position: [20, 60, 20], fov: 45 }}>
+              <Scene
+                environment={environment}
+                markings={markings}
+                onAddMarking={handleAddMarking}
+                onDeleteMarking={handleDeleteMarking}
+                isAddingMode={true}
+                markerScale={5}
               />
-              <input
-                type="url"
-                value={newMarkingUrl}
-                onChange={(e) => setNewMarkingUrl(e.target.value)}
-                placeholder="Enter a URL"
-                className="w-64 p-2 border rounded"
-              />
-              <div className="flex justify-end gap-2">
-                <Button
-                  onClick={saveTempMarking}
-                  disabled={!newMarkingLabel.trim()}
-                >
-                  Save
-                </Button>
-                <Button variant="outline" onClick={cancelTempMarking}>
-                  Cancel
-                </Button>
+            </Canvas>
+
+            {/* Temporary Label + URL Entry */}
+            {tempPosition && (
+              <div className="absolute top-20 left-1/2 transform -translate-x-1/2 z-30 bg-white p-4 shadow rounded-md space-y-2">
+                <input
+                  type="text"
+                  value={newMarkingLabel}
+                  onChange={(e) => setNewMarkingLabel(e.target.value)}
+                  placeholder="Enter marking text"
+                  className="w-64 p-2 border rounded"
+                  autoFocus
+                />
+                <input
+                  type="url"
+                  value={newMarkingUrl}
+                  onChange={(e) => setNewMarkingUrl(e.target.value)}
+                  placeholder="Enter a URL"
+                  className="w-64 p-2 border rounded"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    onClick={saveTempMarking}
+                    disabled={!newMarkingLabel.trim()}
+                  >
+                    Save
+                  </Button>
+                  <Button variant="outline" onClick={cancelTempMarking}>
+                    Cancel
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Sidebar */}
         <RightSidebar markings={markings} deleteMarking={handleDeleteMarking} />
