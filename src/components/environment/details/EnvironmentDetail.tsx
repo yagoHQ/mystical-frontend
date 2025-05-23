@@ -199,8 +199,7 @@ export default function EnvironmentDetail() {
 
       {hasUSDZ ? (
         <div className="flex-1 flex items-center justify-center bg-yellow-50 text-yellow-800 p-6">
-          ⚠️ This environment uses USDZ files, which aren’t supported for 3D
-          viewing yet.
+          ⚠️ Loading 3D model
         </div>
       ) : (
         <div className="flex flex-1 overflow-hidden relative">
