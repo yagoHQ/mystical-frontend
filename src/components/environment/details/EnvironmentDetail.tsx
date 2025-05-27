@@ -55,7 +55,7 @@ export default function EnvironmentDetail() {
   }, [id]);
 
   const handleAddMarking = () => {
-    // your existing add-marking logic
+    // implement your add-marking logic here
   };
 
   const handleDeleteMarking = async (markingId: string) => {
@@ -69,18 +69,14 @@ export default function EnvironmentDetail() {
 
   const handleEdit = () => navigate(`/environment/${id}/edit`);
 
-  // Toggle edit‐mode on the same flag your UI already uses:
   const handleToggleEditEnv = () => {
     setEnvironment((prev) => {
       if (!prev) return prev;
-
       if (prev.isEditable) {
-        // Cancel → restore originalEnv
         return originalEnv
           ? { ...originalEnv, isEditable: false }
           : { ...prev, isEditable: false };
       } else {
-        // Enter edit → stash current
         setOriginalEnv(prev);
         return { ...prev, isEditable: true };
       }
@@ -90,8 +86,6 @@ export default function EnvironmentDetail() {
   const handleSaveChanges = async () => {
     try {
       if (!environment) return;
-
-      // Build clean payload
       const cleanEnvironment = {
         ...environment,
         isEditable: false,
@@ -102,20 +96,15 @@ export default function EnvironmentDetail() {
           scale: scan.scale,
         })),
       };
-
-      console.log('Saving environment:', cleanEnvironment);
       await updateEnvironment(cleanEnvironment);
       setEnvironment(cleanEnvironment);
-
       window.location.reload();
-
-      // optional: show success toast
     } catch (err) {
       console.error('Failed to update environment:', err);
     }
   };
 
-  // Normalize scan arrays on every change
+  // Normalize scan arrays
   useEffect(() => {
     if (!environment) return;
     const normalized = {
@@ -138,10 +127,11 @@ export default function EnvironmentDetail() {
     return <div className="p-6 text-center text-red-600">Error: {error}</div>;
   if (!environment) return null;
 
-  // 1) detect any USDZ files
-  const hasUSDZ = environment.scans.some((scan) =>
-    /\.usdz(\?|$)/i.test(scan.fileUrl)
+  // Detect valid .obj scans only
+  const objScans = environment.scans.filter((scan) =>
+    /\.obj(\?|$)/i.test(scan.fileUrl)
   );
+  const hasValid3DScans = objScans.length > 0;
 
   return (
     <div className="flex flex-col h-screen w-full">
@@ -149,11 +139,6 @@ export default function EnvironmentDetail() {
       <div className="flex flex-col px-8 py-5">
         <div className="bg-white rounded-full px-6 py-3 shadow-lg text-2xl font-semibold">
           {environment.title}
-          {hasUSDZ && (
-            <span className="ml-4 inline-block bg-yellow-200 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full">
-              USDZ Model
-            </span>
-          )}
         </div>
         <div className="mt-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -196,14 +181,13 @@ export default function EnvironmentDetail() {
       </div>
 
       {/* 3D Canvas */}
-
-      {hasUSDZ ? (
+      {!hasValid3DScans ? (
         <div className="flex-1 flex items-center justify-center bg-yellow-50 text-yellow-800 p-6">
-          ⚠️ Loading 3D model
+          ⚠️ No supported 3D models (.obj only)
         </div>
       ) : (
         <div className="flex flex-1 overflow-hidden relative">
-          {environment.scans.length > 0 ? (
+          {environment.scans.length > 0 && (
             <>
               {environment.isEditable && (
                 <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
@@ -244,10 +228,6 @@ export default function EnvironmentDetail() {
                 />
               </Canvas>
             </>
-          ) : (
-            <div className="flex items-center justify-center w-full h-full">
-              <p className="text-gray-500">No scans available.</p>
-            </div>
           )}
         </div>
       )}

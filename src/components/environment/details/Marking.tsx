@@ -14,10 +14,11 @@ export function Marking({ marking, scale = 1 }: MarkingProps) {
   const { camera } = useThree();
   const [isBehindCamera, setIsBehindCamera] = useState(false);
 
+  const markingPos = new Vector3(...marking.position);
+
   useFrame(() => {
-    const vec = new Vector3(...marking.position);
     const dirToCamera = new Vector3()
-      .subVectors(camera.position, vec)
+      .subVectors(camera.position, markingPos)
       .normalize();
     const camForward = camera.getWorldDirection(new Vector3());
     setIsBehindCamera(dirToCamera.dot(camForward) >= 0);
@@ -28,9 +29,7 @@ export function Marking({ marking, scale = 1 }: MarkingProps) {
     const { url } = marking;
     if (!url) return;
 
-    // prepend https:// if missing
     const href = /^https?:\/\//.test(url) ? url : `https://${url}`;
-
     window.open(href, '_blank');
   };
 
@@ -48,7 +47,6 @@ export function Marking({ marking, scale = 1 }: MarkingProps) {
             className="bg-white px-3 py-2 rounded-lg shadow text-sm flex items-center cursor-pointer"
             onClick={handleClick}
           >
-            {/* larger dot */}
             <span className="w-4 h-4 bg-black rounded-full inline-block mr-2" />
             {marking.label}
           </div>
