@@ -1,10 +1,10 @@
 import { Suspense, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Html, TransformControls } from '@react-three/drei';
-import { useThree } from '@react-three/fiber';
-import { Raycaster, Vector2, Group } from 'three';
+import { useThree, useLoader } from '@react-three/fiber';
+import { Raycaster, Vector2, Group, MeshStandardMaterial } from 'three';
 import { Environment } from '@/api/environment.api';
-import { useLoader } from '@react-three/fiber';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'; // 👈 include `.js` extension if using Vite
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { TextureLoader } from 'three';
 
 // Define a scan type
 type Scan = {
@@ -85,19 +85,35 @@ function EnvironmentScanMesh({
   const meshRef = useRef<Group>(null);
   const { gl, camera } = useThree();
 
-  // Get current rotation value
   const currentRotation = scan.rotation || [0, 0, 0];
   const currentPosition = scan.position || [0, 0, 0];
   const currentScale = scan.scale || [1, 1, 1];
 
-  // Load and deep-clone the scene per scan
-  // Ensure the URL has a proper format with unique query parameter
   const scanUrl =
     scan.fileUrl + (scan.fileUrl.includes('?') ? '&' : '?') + `id=${scan.id}`;
-  const obj = useLoader(OBJLoader, scanUrl);
-  const sceneClone = useMemo(() => obj.clone(true), [obj]);
 
-  // Click-to-mark logic
+  const obj = useLoader(OBJLoader, scanUrl);
+
+  const [diffuseMap, , normalMap] = useLoader(
+    TextureLoader,
+    scan.textures || []
+  );
+
+  const sceneClone = useMemo(() => {
+    const cloned = obj.clone(true);
+    cloned.traverse((child) => {
+      if ((child as any).isMesh) {
+        (child as any).material = new MeshStandardMaterial({
+          map: diffuseMap,
+          normalMap: normalMap,
+          metalness: 0.4,
+          roughness: 0.6,
+        });
+      }
+    });
+    return cloned;
+  }, [obj, diffuseMap, normalMap]);
+
   const handleClick = useCallback(
     (event: MouseEvent) => {
       if (!isAddingMode || !meshRef.current) return;
@@ -117,11 +133,9 @@ function EnvironmentScanMesh({
     [isAddingMode, gl.domElement, camera, onAddMarking]
   );
 
-  // Handles logging and updating environment state on transform
   const handleTransformChange = useCallback(() => {
     const obj = meshRef.current;
     if (!obj) return;
-
     const newPosition = obj.position.toArray() as [number, number, number];
     const newRotation = [obj.rotation.x, obj.rotation.y, obj.rotation.z] as [
       number,
@@ -129,8 +143,6 @@ function EnvironmentScanMesh({
       number,
     ];
     const newScale = obj.scale.toArray() as [number, number, number];
-
-    // Update the specific scan in environment state
     setEnvironment({
       ...environment,
       scans: environment.scans.map((s) =>
@@ -154,7 +166,6 @@ function EnvironmentScanMesh({
     }
   }, [isAddingMode, handleClick, gl.domElement]);
 
-  // Ensure the transform controls are applied only when editing is enabled and the mesh is ready
   const showTransformControls = isEditingEnabled && meshRef.current;
 
   return (

@@ -28,6 +28,7 @@ export interface Scan {
   position: [number, number, number];
   rotation: [number, number, number];
   scale: [number, number, number];
+  textures: string[];
 }
 
 export interface Marking {
