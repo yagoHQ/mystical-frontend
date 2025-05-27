@@ -1,11 +1,10 @@
 import { Suspense, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Html, TransformControls, useGLTF } from '@react-three/drei';
+import { Html, TransformControls } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { Raycaster, Vector2, Group } from 'three';
 import { Environment } from '@/api/environment.api';
 import { useLoader } from '@react-three/fiber';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'; // 👈 include `.js` extension if using Vite
-
 
 // Define a scan type
 type Scan = {
@@ -95,9 +94,8 @@ function EnvironmentScanMesh({
   // Ensure the URL has a proper format with unique query parameter
   const scanUrl =
     scan.fileUrl + (scan.fileUrl.includes('?') ? '&' : '?') + `id=${scan.id}`;
- const obj = useLoader(OBJLoader, scanUrl);
-const sceneClone = useMemo(() => obj.clone(true), [obj]);
-
+  const obj = useLoader(OBJLoader, scanUrl);
+  const sceneClone = useMemo(() => obj.clone(true), [obj]);
 
   // Click-to-mark logic
   const handleClick = useCallback(

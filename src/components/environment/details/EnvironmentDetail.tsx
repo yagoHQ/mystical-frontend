@@ -23,7 +23,6 @@ export default function EnvironmentDetail() {
   const navigate = useNavigate();
 
   const [environment, setEnvironment] = useState<EnvType | null>(null);
-  const [originalEnv, setOriginalEnv] = useState<EnvType | null>(null);
   const [markings, setMarkings] = useState<Marking[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +38,6 @@ export default function EnvironmentDetail() {
     getEnvironmentById(id)
       .then((env) => {
         setEnvironment(env);
-        setOriginalEnv(env); // stash the pristine copy
         setMarkings(
           (env.markings || []).map((m) => ({
             id: m.id,
@@ -73,11 +71,9 @@ export default function EnvironmentDetail() {
     setEnvironment((prev) => {
       if (!prev) return prev;
       if (prev.isEditable) {
-        return originalEnv
-          ? { ...originalEnv, isEditable: false }
-          : { ...prev, isEditable: false };
+        window.location.reload();
+        return prev; // Explicitly return prev to avoid undefined
       } else {
-        setOriginalEnv(prev);
         return { ...prev, isEditable: true };
       }
     });
