@@ -123,11 +123,11 @@ export default function EnvironmentDetail() {
     return <div className="p-6 text-center text-red-600">Error: {error}</div>;
   if (!environment) return null;
 
-  // Detect valid .obj scans only
-  const objScans = environment.scans.filter((scan) =>
-    /\.obj(\?|$)/i.test(scan.fileUrl)
+  // Detect valid .glb scans only
+  const glbScans = environment.scans.filter((scan) =>
+    /\.glb(\?|$)/i.test(scan.fileUrl)
   );
-  const hasValid3DScans = objScans.length > 0;
+  const hasValid3DScans = glbScans.length > 0;
 
   return (
     <div className="flex flex-col h-screen w-full">
@@ -179,7 +179,7 @@ export default function EnvironmentDetail() {
       {/* 3D Canvas */}
       {!hasValid3DScans ? (
         <div className="flex-1 flex items-center justify-center bg-yellow-50 text-yellow-800 p-6">
-          ⚠️ No supported 3D models (.obj only)
+          ⚠️ No supported 3D models (.glb only)
         </div>
       ) : (
         <div className="flex flex-1 overflow-hidden relative">

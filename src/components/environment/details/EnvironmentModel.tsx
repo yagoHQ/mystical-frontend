@@ -1,10 +1,8 @@
 import { Suspense, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Html, TransformControls } from '@react-three/drei';
-import { useThree, useLoader } from '@react-three/fiber';
-import { Raycaster, Vector2, Group, MeshStandardMaterial } from 'three';
+import { Html, TransformControls, useGLTF } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
+import { Raycaster, Vector2, Group } from 'three';
 import { Environment } from '@/api/environment.api';
-import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
-import { TextureLoader } from 'three';
 
 // Define a scan type
 type Scan = {
@@ -44,7 +42,7 @@ export function EnvironmentModel({
       fallback={
         <Html center>
           <div style={{ color: 'white', fontSize: '1.2em' }}>
-            Loading scans…
+            Loading GLB models…
           </div>
         </Html>
       }
@@ -92,27 +90,9 @@ function EnvironmentScanMesh({
   const scanUrl =
     scan.fileUrl + (scan.fileUrl.includes('?') ? '&' : '?') + `id=${scan.id}`;
 
-  const obj = useLoader(OBJLoader, scanUrl);
-
-  const [diffuseMap, , normalMap] = useLoader(
-    TextureLoader,
-    scan.textures || []
-  );
-
-  const sceneClone = useMemo(() => {
-    const cloned = obj.clone(true);
-    cloned.traverse((child) => {
-      if ((child as any).isMesh) {
-        (child as any).material = new MeshStandardMaterial({
-          map: diffuseMap,
-          normalMap: normalMap,
-          metalness: 0.4,
-          roughness: 0.6,
-        });
-      }
-    });
-    return cloned;
-  }, [obj, diffuseMap, normalMap]);
+  // Load GLB model using useGLTF
+  const { scene } = useGLTF(scanUrl, true);
+  const sceneClone = useMemo(() => scene.clone(true), [scene]);
 
   const handleClick = useCallback(
     (event: MouseEvent) => {
