@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import QRModel from './QRModel';
 
 export default function EnvironmentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +31,7 @@ export default function EnvironmentDetail() {
   const [controlMode, setControlMode] = useState<
     'translate' | 'rotate' | 'scale'
   >('translate');
+  const [openQR, setOpenQR] = useState(false);
 
   // Load environment once
   useEffect(() => {
@@ -129,6 +131,11 @@ export default function EnvironmentDetail() {
   );
   const hasValid3DScans = glbScans.length > 0;
 
+  const handleQrClick = () => {
+    console.log('QR Code clicked');
+    setOpenQR(true);
+  };
+
   return (
     <div className="flex flex-col h-screen w-full">
       {/* Info Bar */}
@@ -144,6 +151,14 @@ export default function EnvironmentDetail() {
             </span>
           </div>
           <div className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={handleQrClick}
+              className="bg-white text-black hover:bg-gray-100 cursor-pointer"
+            >
+              <span className="text-sm">QR Code</span>
+            </Button>
+
             {environment.isEditable && (
               <Button variant="outline" onClick={handleSaveChanges}>
                 Save Changes
@@ -225,6 +240,14 @@ export default function EnvironmentDetail() {
               </Canvas>
             </>
           )}
+
+          <QRModel
+            open={openQR}
+            onOpenChange={setOpenQR}
+            id={environment.id}
+            originPosition={environment.originPosition}
+            originRotation={environment.originRotation}
+          />
         </div>
       )}
     </div>

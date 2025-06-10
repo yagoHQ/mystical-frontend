@@ -8,6 +8,8 @@ export interface Environment {
   title: string;
   location: string;
   isEditable: boolean;
+  originPosition: [number, number, number];
+  originRotation: [number, number, number];
   scannedBy: {
     id: string;
     name: string;
