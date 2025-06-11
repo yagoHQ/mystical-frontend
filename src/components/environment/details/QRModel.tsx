@@ -24,9 +24,6 @@ const QRModelDialog: React.FC<QRModelDialogProps> = ({
   // Create QR code data - you can customize what data to encode
   const qrData = JSON.stringify({
     id,
-    position: originPosition,
-    rotation: originRotation,
-    timestamp: Date.now(),
   });
 
   // Generate QR code URL using QR Server API

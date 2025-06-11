@@ -19,7 +19,12 @@ interface SceneProps {
   isAddingMode: boolean;
   /** Uniform scale for each marking */
   markerScale?: number;
-  controlMode?: 'translate' | 'rotate' | 'scale';
+  controlMode?: 'translate' | 'rotate' | 'scale' | 'pick-origin';
+  pickingOrigin?: boolean;
+  onSaveOrigin?: (
+    originPosition: [number, number, number],
+    originRotation: [number, number, number]
+  ) => void;
 }
 
 export function Scene({
@@ -30,6 +35,8 @@ export function Scene({
   isAddingMode,
   markerScale = 1, // default 1×
   controlMode,
+  pickingOrigin = false,
+  onSaveOrigin,
 }: SceneProps) {
   // Ensure environment is properly normalized before passing to children
   const normalizedEnvironment = {
@@ -54,6 +61,8 @@ export function Scene({
         onAddMarking={onAddMarking}
         isAddingMode={isAddingMode}
         controlMode={controlMode || 'translate'}
+        pickingOrigin={pickingOrigin}
+        onSaveOrigin={onSaveOrigin}
       />
 
       {markings.map((mark) => (
@@ -74,6 +83,8 @@ export function Scene({
         minPolarAngle={0} // full vertical sweep
         maxPolarAngle={Math.PI}
         zoomSpeed={1.5} // faster zoom
+        // Disable controls when picking origin to prevent interference
+        enabled={!pickingOrigin}
       />
     </>
   );

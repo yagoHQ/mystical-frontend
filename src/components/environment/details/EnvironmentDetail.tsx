@@ -9,6 +9,7 @@ import {
   Marking,
   deleteMarking,
   updateEnvironment,
+  addOriginToEnvironment,
 } from '@/api/environment.api';
 import {
   Select,
@@ -29,9 +30,53 @@ export default function EnvironmentDetail() {
   const [error, setError] = useState<string | null>(null);
   const [isAddingMode] = useState(true);
   const [controlMode, setControlMode] = useState<
-    'translate' | 'rotate' | 'scale'
+    'translate' | 'rotate' | 'scale' | 'pick-origin'
   >('translate');
   const [openQR, setOpenQR] = useState(false);
+  const [pickingOrigin, setPickingOrigin] = useState(false);
+
+  const handleSaveOrigin = async (
+    originPosition: [number, number, number],
+    originRotation: [number, number, number]
+  ) => {
+    if (!environment) return;
+    try {
+      const updated = {
+        ...environment,
+        originPosition,
+        originRotation,
+      };
+      setEnvironment(updated);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Handle control mode changes
+  const handleControlModeChange = (value: string) => {
+    const newMode = value as 'translate' | 'rotate' | 'scale';
+    setControlMode(newMode);
+  };
+
+  const saveOrigin = async () => {
+    if (!environment) return;
+    if (!environment.originPosition || !environment.originRotation) {
+      console.error('Origin position or rotation not set');
+      return;
+    }
+    try {
+      await addOriginToEnvironment(
+        environment.id,
+        environment.originPosition as [number, number, number],
+        environment.originRotation as [number, number, number]
+      );
+      console.log('Origin saved successfully');
+    } catch (err) {
+      console.error('Failed to save origin:', err);
+    } finally {
+      setPickingOrigin(false);
+    }
+  };
 
   // Load environment once
   useEffect(() => {
@@ -151,9 +196,30 @@ export default function EnvironmentDetail() {
             </span>
           </div>
           <div className="flex gap-4">
+            {pickingOrigin ? (
+              <Button
+                variant="outline"
+                onClick={saveOrigin}
+                className="bg-white text-black hover:bg-gray-100 cursor-pointer"
+              >
+                <span className="text-sm">Save Origin</span>
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPickingOrigin(true);
+                }}
+                className="bg-white text-black hover:bg-gray-100 cursor-pointer"
+              >
+                <span className="text-sm">Add Origin</span>
+              </Button>
+            )}
+
             <Button
               variant="outline"
               onClick={handleQrClick}
+              disabled={!environment.originPosition?.length}
               className="bg-white text-black hover:bg-gray-100 cursor-pointer"
             >
               <span className="text-sm">QR Code</span>
@@ -204,9 +270,7 @@ export default function EnvironmentDetail() {
                 <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
                   <Select
                     value={controlMode}
-                    onValueChange={(value) =>
-                      setControlMode(value as typeof controlMode)
-                    }
+                    onValueChange={handleControlModeChange}
                   >
                     <SelectTrigger className="bg-white text-black border-gray-300">
                       <SelectValue placeholder="Select Tool" />
@@ -217,6 +281,24 @@ export default function EnvironmentDetail() {
                       <SelectItem value="scale">Scale</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+              )}
+
+              {pickingOrigin && (
+                <div className="absolute top-4 left-4 z-10 bg-gray-100 rounded-lg shadow-lg p-3 w-48">
+                  <p className="text-sm text-blue-800 mb-2">
+                    Click on any point in the 3D scene to set the origin
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setPickingOrigin(false)}
+                      className="text-xs"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               )}
               <Canvas
@@ -236,6 +318,8 @@ export default function EnvironmentDetail() {
                   isAddingMode={isAddingMode}
                   markerScale={1}
                   controlMode={controlMode}
+                  pickingOrigin={pickingOrigin}
+                  onSaveOrigin={handleSaveOrigin}
                 />
               </Canvas>
             </>

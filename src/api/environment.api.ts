@@ -187,3 +187,34 @@ export async function getDashboardData(): Promise<{
     throw new Error(message);
   }
 }
+
+export const addOriginToEnvironment = async (
+  environmentId: string,
+  originPosition: [number, number, number],
+  originRotation: [number, number, number]
+): Promise<Environment> => {
+  try {
+    const payload = {
+      environmentId,
+      positionX: originPosition[0].toString(),
+      positionY: originPosition[1].toString(),
+      positionZ: originPosition[2].toString(),
+      rotationX: originRotation[0].toString(),
+      rotationY: originRotation[1].toString(),
+      rotationZ: originRotation[2].toString(),
+    };
+
+    const { data } = await apiClient.post<Environment>(
+      '/api/environments/origin',
+      payload,
+      {
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+
+    return data;
+  } catch (err: any) {
+    const message = handleApiError(err);
+    throw new Error(message);
+  }
+};

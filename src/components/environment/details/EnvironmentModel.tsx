@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Html, TransformControls, useGLTF } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { Raycaster, Vector2, Group } from 'three';
+import { Raycaster, Vector2, Vector3, Group } from 'three';
 import { Environment } from '@/api/environment.api';
 
 // Define a scan type
@@ -20,12 +20,19 @@ export function EnvironmentModel({
   onAddMarking,
   isAddingMode,
   controlMode,
+  pickingOrigin,
+  onSaveOrigin,
 }: {
   onAddMarking: (position: [number, number, number]) => void;
   isAddingMode: boolean;
   environment: Environment;
-  controlMode: 'translate' | 'rotate' | 'scale';
+  controlMode: 'translate' | 'rotate' | 'scale' | 'pick-origin';
   setEnvironment: (env: Environment) => void;
+  pickingOrigin?: boolean;
+  onSaveOrigin?: (
+    originPosition: [number, number, number],
+    originRotation: [number, number, number]
+  ) => void;
 }) {
   if (!environment.scans || environment.scans.length === 0) {
     return (
@@ -57,6 +64,8 @@ export function EnvironmentModel({
           isAddingMode={isAddingMode}
           onAddMarking={onAddMarking}
           controlMode={controlMode}
+          pickingOrigin={pickingOrigin}
+          onSaveOrigin={onSaveOrigin}
         />
       ))}
     </Suspense>
@@ -71,6 +80,8 @@ function EnvironmentScanMesh({
   controlMode,
   environment,
   setEnvironment,
+  pickingOrigin,
+  onSaveOrigin,
 }: {
   scan: Scan;
   isEditingEnabled: boolean;
@@ -78,7 +89,12 @@ function EnvironmentScanMesh({
   onAddMarking: (position: [number, number, number]) => void;
   environment: Environment;
   setEnvironment: (env: Environment) => void;
-  controlMode: 'translate' | 'rotate' | 'scale';
+  controlMode: 'translate' | 'rotate' | 'scale' | 'pick-origin';
+  pickingOrigin?: boolean;
+  onSaveOrigin?: (
+    originPosition: [number, number, number],
+    originRotation: [number, number, number]
+  ) => void;
 }) {
   const meshRef = useRef<Group>(null);
   const { gl, camera } = useThree();
@@ -96,21 +112,60 @@ function EnvironmentScanMesh({
 
   const handleClick = useCallback(
     (event: MouseEvent) => {
-      if (!isAddingMode || !meshRef.current) return;
+      if (!meshRef.current) return;
+
       const rect = gl.domElement.getBoundingClientRect();
       const mouse = new Vector2(
         ((event.clientX - rect.left) / rect.width) * 2 - 1,
         (-(event.clientY - rect.top) / rect.height) * 2 + 1
       );
+
       const raycaster = new Raycaster();
       raycaster.setFromCamera(mouse, camera);
       const hits = raycaster.intersectObject(meshRef.current, true);
+
       if (hits.length) {
         const { x, y, z } = hits[0].point;
-        onAddMarking([x, y, z]);
+
+        if (pickingOrigin && onSaveOrigin) {
+          // For origin picking, use the hit point as the origin position
+          // For rotation, we can use the surface normal or default to [0, 0, 0]
+          const normal = hits[0].face?.normal || new Vector3(0, 1, 0);
+
+          // Convert normal to euler angles (this is a simplified approach)
+          // You might want to use a more sophisticated method based on your needs
+          const originRotation: [number, number, number] = [
+            Math.atan2(normal.y, normal.z),
+            Math.atan2(
+              -normal.x,
+              Math.sqrt(normal.y * normal.y + normal.z * normal.z)
+            ),
+            0,
+          ];
+
+          console.log(
+            `Picked origin at: [${x.toFixed(2)}, ${y.toFixed(
+              2
+            )}, ${z.toFixed(2)}] with rotation: [${originRotation
+              .map((r) => r.toFixed(2))
+              .join(', ')}]`
+          );
+
+          onSaveOrigin([x, y, z], originRotation);
+        } else if (isAddingMode) {
+          // Regular marking mode
+          onAddMarking([x, y, z]);
+        }
       }
     },
-    [isAddingMode, gl.domElement, camera, onAddMarking]
+    [
+      isAddingMode,
+      pickingOrigin,
+      gl.domElement,
+      camera,
+      onAddMarking,
+      onSaveOrigin,
+    ]
   );
 
   const handleTransformChange = useCallback(() => {
@@ -140,13 +195,21 @@ function EnvironmentScanMesh({
 
   useEffect(() => {
     const canvas = gl.domElement;
-    if (isAddingMode) {
+    if (isAddingMode || pickingOrigin) {
       canvas.addEventListener('click', handleClick);
-      return () => canvas.removeEventListener('click', handleClick);
+      canvas.style.cursor = pickingOrigin ? 'crosshair' : 'pointer';
+      return () => {
+        canvas.removeEventListener('click', handleClick);
+        canvas.style.cursor = 'default';
+      };
     }
-  }, [isAddingMode, handleClick, gl.domElement]);
+  }, [isAddingMode, pickingOrigin, handleClick, gl.domElement]);
 
-  const showTransformControls = isEditingEnabled && meshRef.current;
+  const showTransformControls =
+    isEditingEnabled &&
+    meshRef.current &&
+    controlMode !== 'pick-origin' &&
+    !pickingOrigin;
 
   return (
     <>
