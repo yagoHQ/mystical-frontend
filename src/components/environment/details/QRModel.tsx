@@ -21,13 +21,31 @@ const QRModelDialog: React.FC<QRModelDialogProps> = ({
   open,
   onOpenChange,
 }) => {
-  // Create QR code data - you can customize what data to encode
-  const qrData = JSON.stringify({
-    id,
-  });
+  // QR data payload
+  const qrData = JSON.stringify({ id });
 
-  // Generate QR code URL using QR Server API
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`;
+  // QR code service URL
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(
+    qrData
+  )}`;
+
+  // Download handler
+  const handleDownload = async () => {
+    try {
+      const response = await fetch(qrCodeUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${id}-qr.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download QR code:', err);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -90,13 +108,19 @@ const QRModelDialog: React.FC<QRModelDialogProps> = ({
             </div>
           </div>
 
-          {/* Copy Data Button */}
-          <div className="border-t pt-4">
+          {/* Action Buttons */}
+          <div className="border-t pt-4 flex flex-col gap-2">
             <button
               onClick={() => navigator.clipboard.writeText(qrData)}
               className="w-full px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
             >
               Copy QR Data to Clipboard
+            </button>
+            <button
+              onClick={handleDownload}
+              className="w-full px-3 py-2 text-sm bg-blue-100 hover:bg-blue-200 rounded-md transition-colors"
+            >
+              Download QR Image
             </button>
           </div>
         </div>

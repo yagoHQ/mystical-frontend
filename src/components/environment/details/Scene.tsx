@@ -2,6 +2,7 @@ import { OrbitControls } from '@react-three/drei';
 import { EnvironmentModel } from './EnvironmentModel';
 import { Marking } from './Marking';
 import { Environment } from '@/api/environment.api';
+import Origin from './Origin';
 
 export interface MarkingData {
   id: string;
@@ -50,11 +51,12 @@ export function Scene({
     })),
   };
 
+  const { originPosition } = environment;
+
   return (
     <>
       <ambientLight intensity={0.7} />
       <directionalLight position={[5, 5, 5]} />
-
       <EnvironmentModel
         environment={normalizedEnvironment}
         setEnvironment={setEnvironment || (() => {})}
@@ -72,6 +74,13 @@ export function Scene({
           scale={markerScale} // ← pass it down
         />
       ))}
+
+      {originPosition && (
+        <Origin
+          key={'12345'}
+          position={originPosition as [number, number, number]}
+        />
+      )}
 
       <OrbitControls
         makeDefault
