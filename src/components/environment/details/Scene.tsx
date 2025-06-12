@@ -75,7 +75,7 @@ export function Scene({
         />
       ))}
 
-      {originPosition && (
+      {originPosition.length === 3 && (
         <Origin
           key={'12345'}
           position={originPosition as [number, number, number]}
