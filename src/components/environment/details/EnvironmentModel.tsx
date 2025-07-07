@@ -50,8 +50,8 @@ export function EnvironmentModel({
     <Suspense
       fallback={
         <Html center>
-          <div style={{ color: 'white', fontSize: '1.2em' }}>
-            Loading GLB models…
+          <div style={{ color: 'black', fontSize: '1.2em' }}>
+            Loading models…
           </div>
         </Html>
       }
