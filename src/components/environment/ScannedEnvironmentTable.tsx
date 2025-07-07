@@ -3,7 +3,14 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { getEnvironments, Environment, Scan } from '@/api/environment.api';
+import {
+  getEnvironments,
+  Environment,
+  Scan,
+  deleteEnvironment,
+  deleteScan,
+} from '@/api/environment.api';
+import { ConfirmDeleteModal } from '@/shared/ConfirmDeleteModal';
 
 export default function ScannedEnvironmentTable() {
   const navigate = useNavigate();
@@ -11,6 +18,16 @@ export default function ScannedEnvironmentTable() {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedEnvId, setSelectedEnvId] = useState<string | null>(null);
+  const [selectedEnvTitle, setSelectedEnvTitle] = useState<string | null>(null);
+  const [deleteType, setDeleteType] = useState<'environment' | 'scan' | null>(
+    null
+  );
+  const [selectedScanId, setSelectedScanId] = useState<string | null>(null);
+  const [selectedScanName, setSelectedScanName] = useState<string | null>(null);
+  const [parentEnvId, setParentEnvId] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -38,6 +55,62 @@ export default function ScannedEnvironmentTable() {
       return next;
     });
   };
+
+  const onConfirmDelete = async () => {
+    try {
+      if (deleteType === 'environment' && selectedEnvId) {
+        await deleteEnvironment(selectedEnvId);
+        setEnvironments((prev) =>
+          prev.filter((env) => env.id !== selectedEnvId)
+        );
+      }
+
+      if (deleteType === 'scan' && selectedScanId && parentEnvId) {
+        await deleteScan(selectedScanId);
+        setEnvironments((prev) =>
+          prev.map((env) =>
+            env.id === parentEnvId
+              ? {
+                  ...env,
+                  scans: env.scans.filter((scan) => scan.id !== selectedScanId),
+                }
+              : env
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Deletion failed:', err);
+      // Optionally show a toast here
+    } finally {
+      // Reset modal + state
+      setDeleteModalOpen(false);
+      setSelectedEnvId(null);
+      setSelectedEnvTitle(null);
+      setSelectedScanId(null);
+      setSelectedScanName(null);
+      setParentEnvId(null);
+      setDeleteType(null);
+    }
+  };
+
+  const handleDelete = (id: string, title: string) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedEnvId(id);
+    setSelectedEnvTitle(title);
+    setDeleteModalOpen(true);
+    setDeleteType('environment');
+  };
+
+  const handleScanDelete =
+    (scanId: string, scanName: string, envId: string) =>
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setSelectedScanId(scanId);
+      setSelectedScanName(scanName);
+      setParentEnvId(envId);
+      setDeleteType('scan');
+      setDeleteModalOpen(true);
+    };
 
   if (loading)
     return <div className="p-6 text-center">Loading environments…</div>;
@@ -98,10 +171,7 @@ export default function ScannedEnvironmentTable() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log('delete', env.id);
-                }}
+                onClick={handleDelete(env.id, env.title)}
               >
                 <Trash2 className="h-4 w-4 text-gray-500" />
               </Button>
@@ -117,6 +187,17 @@ export default function ScannedEnvironmentTable() {
                   >
                     <div className="flex justify-between items-center">
                       <h4 className="font-medium">{scan.scanName}</h4>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleScanDelete(
+                          scan.id,
+                          scan.scanName,
+                          env.id
+                        )}
+                      >
+                        <Trash2 className="h-4 w-4 text-gray-500" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -125,6 +206,17 @@ export default function ScannedEnvironmentTable() {
           </div>
         );
       })}
+
+      <ConfirmDeleteModal
+        title={
+          deleteType === 'environment'
+            ? selectedEnvTitle || 'this environment'
+            : selectedScanName || 'this scan'
+        }
+        isOpen={deleteModalOpen}
+        onConfirm={onConfirmDelete}
+        onCancel={() => setDeleteModalOpen(false)}
+      />
 
       {/* Pagination */}
       <div className="flex items-center justify-between px-4 py-3 bg-gray-50 text-sm text-gray-600">

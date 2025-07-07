@@ -218,3 +218,21 @@ export const addOriginToEnvironment = async (
     throw new Error(message);
   }
 };
+
+export const deleteEnvironment = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/api/environments/delete/${id}`);
+  } catch (err: any) {
+    const message = handleApiError(err);
+    throw new Error(message);
+  }
+};
+
+export const deleteScan = async (id: string): Promise<void> => {
+  try {
+    await apiClient.delete(`/api/scans/delete/${id}`);
+  } catch (err: any) {
+    const message = handleApiError(err);
+    throw new Error(message);
+  }
+};
