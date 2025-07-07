@@ -34,6 +34,9 @@ export default function EnvironmentDetail() {
   >('translate');
   const [openQR, setOpenQR] = useState(false);
   const [pickingOrigin, setPickingOrigin] = useState(false);
+  const [autoCameraPosition, setAutoCameraPosition] = useState<
+    [number, number, number]
+  >([5, 5, 5]);
 
   const handleSaveOrigin = async (
     originPosition: [number, number, number],
@@ -303,10 +306,10 @@ export default function EnvironmentDetail() {
               )}
               <Canvas
                 camera={{
-                  position: [20, 60, 20],
-                  fov: 45,
-                  near: 0.01,
-                  far: 5000,
+                  position: autoCameraPosition, // Automatically set camera position
+                  fov: 50, // Wider field of view (optional)
+                  near: 0.1,
+                  far: 1000,
                 }}
               >
                 <Scene
@@ -320,6 +323,7 @@ export default function EnvironmentDetail() {
                   controlMode={controlMode}
                   pickingOrigin={pickingOrigin}
                   onSaveOrigin={handleSaveOrigin}
+                  setAutoCameraPosition={setAutoCameraPosition}
                 />
               </Canvas>
             </>

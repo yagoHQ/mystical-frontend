@@ -29,6 +29,9 @@ export default function EnvironmentEdit() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [autoCameraPosition, setAutoCameraPosition] = useState<
+    [number, number, number]
+  >([5, 5, 5]);
 
   // 1️⃣ Load the environment & existing markings
   useEffect(() => {
@@ -175,14 +178,22 @@ export default function EnvironmentEdit() {
           </div>
         ) : (
           <div className="flex-1 relative">
-            <Canvas camera={{ position: [20, 60, 20], fov: 45 }}>
+            <Canvas
+              camera={{
+                position: autoCameraPosition,
+                fov: 50, // Wider field of view (optional)
+                near: 0.1,
+                far: 1000,
+              }}
+            >
               <Scene
                 environment={environment}
                 markings={markings}
                 onAddMarking={handleAddMarking}
                 onDeleteMarking={handleDeleteMarking}
                 isAddingMode={true}
-                markerScale={5}
+                markerScale={environment?.scans[0]?.scale?.[0] || 1} // use first scan's scale
+                setAutoCameraPosition={setAutoCameraPosition}
               />
             </Canvas>
 

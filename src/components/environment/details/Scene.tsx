@@ -26,6 +26,7 @@ interface SceneProps {
     originPosition: [number, number, number],
     originRotation: [number, number, number]
   ) => void;
+  setAutoCameraPosition?: (pos: [number, number, number]) => void;
 }
 
 export function Scene({
@@ -38,6 +39,7 @@ export function Scene({
   controlMode,
   pickingOrigin = false,
   onSaveOrigin,
+  setAutoCameraPosition,
 }: SceneProps) {
   // Ensure environment is properly normalized before passing to children
   const normalizedEnvironment = {
@@ -65,6 +67,7 @@ export function Scene({
         controlMode={controlMode || 'translate'}
         pickingOrigin={pickingOrigin}
         onSaveOrigin={onSaveOrigin}
+        setAutoCameraPosition={setAutoCameraPosition}
       />
 
       {markings.map((mark) => (

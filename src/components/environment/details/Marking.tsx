@@ -38,7 +38,7 @@ export function Marking({ marking, scale = 1 }: MarkingProps) {
       {!isBehindCamera && (
         <Html
           transform
-          distanceFactor={15}
+          distanceFactor={scale}
           sprite
           zIndexRange={[100, 0]}
           occlude={false}

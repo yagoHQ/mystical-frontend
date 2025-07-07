@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Html, TransformControls, useGLTF } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
-import { Raycaster, Vector2, Vector3, Group } from 'three';
+import { Raycaster, Vector2, Vector3, Group, Box3 } from 'three';
 import { Environment } from '@/api/environment.api';
 
 // Define a scan type
@@ -22,6 +22,7 @@ export function EnvironmentModel({
   controlMode,
   pickingOrigin,
   onSaveOrigin,
+  setAutoCameraPosition,
 }: {
   onAddMarking: (position: [number, number, number]) => void;
   isAddingMode: boolean;
@@ -33,6 +34,7 @@ export function EnvironmentModel({
     originPosition: [number, number, number],
     originRotation: [number, number, number]
   ) => void;
+  setAutoCameraPosition?: (pos: [number, number, number]) => void;
 }) {
   if (!environment.scans || environment.scans.length === 0) {
     return (
@@ -66,6 +68,7 @@ export function EnvironmentModel({
           controlMode={controlMode}
           pickingOrigin={pickingOrigin}
           onSaveOrigin={onSaveOrigin}
+          setAutoCameraPosition={setAutoCameraPosition}
         />
       ))}
     </Suspense>
@@ -82,6 +85,7 @@ function EnvironmentScanMesh({
   setEnvironment,
   pickingOrigin,
   onSaveOrigin,
+  setAutoCameraPosition,
 }: {
   scan: Scan;
   isEditingEnabled: boolean;
@@ -95,6 +99,7 @@ function EnvironmentScanMesh({
     originPosition: [number, number, number],
     originRotation: [number, number, number]
   ) => void;
+  setAutoCameraPosition?: (pos: [number, number, number]) => void;
 }) {
   const meshRef = useRef<Group>(null);
   const { gl, camera } = useThree();
@@ -109,6 +114,25 @@ function EnvironmentScanMesh({
   // Load GLB model using useGLTF
   const { scene } = useGLTF(scanUrl, true);
   const sceneClone = useMemo(() => scene.clone(true), [scene]);
+
+  useEffect(() => {
+    if (!scene || !setAutoCameraPosition) return;
+
+    const boundingBox = new Box3().setFromObject(scene);
+    const size = new Vector3();
+    const center = new Vector3();
+    boundingBox.getSize(size);
+    boundingBox.getCenter(center);
+
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const distance = maxDim * 2;
+
+    setAutoCameraPosition([
+      center.x + distance,
+      center.y + distance,
+      center.z + distance,
+    ]);
+  }, [scene]);
 
   const handleClick = useCallback(
     (event: MouseEvent) => {
