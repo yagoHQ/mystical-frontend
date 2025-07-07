@@ -10,9 +10,13 @@ export interface OriginProps {
   rotation?: [number, number, number];
   /** how big the HTML scales with distance */
   distanceFactor?: number;
+  markerScale?: number; // optional scale for the marker
 }
 
-const Origin: React.FC<OriginProps> = ({ position, rotation = [0, 0, 0] }) => {
+const Origin: React.FC<OriginProps> = (
+  { position, rotation = [0, 0, 0] },
+  markerScale = 1
+) => {
   return (
     <group
       position={position}
@@ -22,7 +26,7 @@ const Origin: React.FC<OriginProps> = ({ position, rotation = [0, 0, 0] }) => {
       <Html
         transform
         center
-        distanceFactor={15}
+        distanceFactor={markerScale} // Adjust distance factor for visibility
         occlude={false}
         zIndexRange={[100, 0]}
         sprite

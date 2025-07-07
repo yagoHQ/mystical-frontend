@@ -82,6 +82,7 @@ export function Scene({
         <Origin
           key={'12345'}
           position={originPosition as [number, number, number]}
+          markerScale={markerScale}
         />
       )}
 
